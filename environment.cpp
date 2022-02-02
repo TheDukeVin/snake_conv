@@ -152,25 +152,7 @@ void Environment::setChanceAction(Environment* currState, int actionIndex){
     }
 }
 
-void Environment::inputAgent(Agent* a){
-    a->activation[0][0] = (double) timer / maxTime;
-    a->activation[0][1] = score / scoreNorm;
-    a->activation[0][2] = actionType;
-    a->activation[0][3] = headx;
-    a->activation[0][4] = heady;
-    a->activation[0][5] = tailx;
-    a->activation[0][6] = taily;
-    a->activation[0][7] = applex;
-    a->activation[0][8] = appley;
-    int i,j;
-    for(i=0; i<boardx; i++){
-        for(j=0; j<boardy; j++){
-            a->activation[0][9 + (i*boardy + j)] = snake[i][j];
-        }
-    }
-}
-
-void Environment::inputSymmetric(Agent* a, int t){
+void Environment::inputSymmetric(networkInput* a, int t){
     int m = boardx-1;
     int sym[8][2][3] = {
         {{ 1, 0, 0},{ 0, 1, 0}},
@@ -192,15 +174,15 @@ void Environment::inputSymmetric(Agent* a, int t){
         {-1,3},
         {-1,0}
     };
-    a->activation[0][0] = (double) timer / maxTime;
-    a->activation[0][1] = score / scoreNorm;
-    a->activation[0][2] = actionType;
-    a->activation[0][3] = sym[t][0][0]*headx + sym[t][0][1]*heady + sym[t][0][2];
-    a->activation[0][4] = sym[t][1][0]*headx + sym[t][1][1]*heady + sym[t][1][2];
-    a->activation[0][5] = sym[t][0][0]*tailx + sym[t][0][1]*taily + sym[t][0][2];
-    a->activation[0][6] = sym[t][1][0]*tailx + sym[t][1][1]*taily + sym[t][1][2];
-    a->activation[0][7] = sym[t][0][0]*applex + sym[t][0][1]*appley + sym[t][0][2];
-    a->activation[0][8] = sym[t][1][0]*applex + sym[t][1][1]*appley + sym[t][1][2];
+    a->param[0] = (double) timer / maxTime;
+    a->param[1] = score / scoreNorm;
+    a->param[2] = actionType;
+    a->pos[0][0] = sym[t][0][0]*headx + sym[t][0][1]*heady + sym[t][0][2];
+    a->pos[0][1] = sym[t][1][0]*headx + sym[t][1][1]*heady + sym[t][1][2];
+    a->pos[1][0] = sym[t][0][0]*tailx + sym[t][0][1]*taily + sym[t][0][2];
+    a->pos[1][1] = sym[t][1][0]*tailx + sym[t][1][1]*taily + sym[t][1][2];
+    a->pos[2][0] = sym[t][0][0]*applex + sym[t][0][1]*appley + sym[t][0][2];
+    a->pos[2][1] = sym[t][1][0]*applex + sym[t][1][1]*appley + sym[t][1][2];
     
     int i,j,x,y;
     for(i=0; i<boardx; i++){
@@ -208,10 +190,10 @@ void Environment::inputSymmetric(Agent* a, int t){
             x = sym[t][0][0]*i + sym[t][0][1]*j + sym[t][0][2];
             y = sym[t][1][0]*i + sym[t][1][1]*j + sym[t][1][2];
             if(snake[i][j] == -1 || snake[i][j] == 4){
-                a->activation[0][9 + (x*boardy + y)] = snake[i][j];
+                a->snake[x][y] = -1;
             }
             else{
-                a->activation[0][9 + (x*boardy + y)] = (symDir[t][0]*snake[i][j] + symDir[t][1] + 4) % 4;
+                a->snake[x][y] = (symDir[t][0]*snake[i][j] + symDir[t][1] + 4) % 4;
             }
         }
     }

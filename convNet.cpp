@@ -174,6 +174,7 @@ void ConvLayer::save(){
     netOut.close();
 }
 
+
 // PoolLayer
     
 void PoolLayer::pass(double* inputs, double* outputs){
@@ -306,33 +307,6 @@ void DenseLayer::save(){
 }
 
 
-// InputLayer
-
-void InputLayer::initialize(){
-    
-}
-
-void InputLayer::pass(networkInput* inputs, double* outputs){
-    
-}
-
-void InputLayer::resetGradient(){
-    
-}
-
-void InputLayer::accumulateGradient(networkInput* inputs, double* Doutputs){
-    
-}
-
-void InputLayer::updateParameters(){
-    
-}
-
-void InputLayer::save(){
-    
-}
-
-
 // Layer
 
 void Layer::randomize(){
@@ -425,6 +399,8 @@ void Agent::initInput(int depth, int height, int width, int convHeight, int conv
     il.outputDepth = depth;
     il.outputHeight = height;
     il.outputWidth = width;
+    il.convHeight = convHeight;
+    il.convWidth = convWidth;
     layerIndex = 0;
     prevDepth = depth;
     prevHeight = height;
@@ -511,8 +487,6 @@ void Agent::updateParameters(){
 }
 
 void Agent::save(){
-    ofstream netOut(netAddress);
-    netOut.close();
     il.save();
     for(int l=0; l<numLayers; l++){
         ofstream netOut(netAddress, ios::app);

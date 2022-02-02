@@ -212,7 +212,7 @@ void Trainer::expandPath(){
         initializeNode(index);
         //fout<<"New state:\n";
         //states[index].print();
-        states[index].inputSymmetric(&a, rand()%8);
+        states[index].inputSymmetric(&a.input, rand()%8);
         a.pass();
         newVal = a.output;
         path[count] = index;

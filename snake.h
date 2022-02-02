@@ -21,7 +21,7 @@ using namespace std;
 
 #define boardx 6
 #define boardy 6
-#define maxTime 180
+#define maxTime 40
 
 #define numAgentActions 4
 #define numChanceActions (boardx*boardy)
@@ -29,16 +29,16 @@ using namespace std;
 
 //training deatils
 
-#define learnRate 0.01
-#define momentum 0.9
-#define batchSize 20
+#define learnRate 0.1
+//#define momentum 0.9
+#define batchSize 1000
 #define mult (learnRate / batchSize)
 #define numEval 100
 #define scoreNorm 5
 #define numBatches 2
 #define queueSize 40000
 
-#define numGames 1501
+#define numGames 701
 #define numPaths 120
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
@@ -47,11 +47,11 @@ using namespace std;
 
 //network details
 
-#define numLayers 4
-#define maxNodes 100
-#define maxDepth 4
+#define numLayers 3
+#define maxNodes 144
+#define maxDepth 7
 #define maxConvSize 3
-#define startingParameterRange 0.1
+#define startingParameterRange 0.05
 
 
 const string outAddress = "snake_conv.txt";
@@ -137,7 +137,7 @@ public:
 struct networkInput{
     int snake[boardx][boardy];
     int pos[3][2]; // head, tail, and apple positions
-    int param[3]; // timer, score, and actionType
+    double param[3]; // timer, score, and actionType. score and timer are normalized.
 };
 
 class InputLayer{
@@ -145,10 +145,16 @@ public:
     int outputDepth, outputHeight, outputWidth;
     int convHeight, convWidth;
     int shiftr, shiftc;
+    int posShiftr, posShiftc;
     double snakeWeights[4][maxDepth][maxConvSize][maxConvSize]; // accessed in cellType, outputl, r, c.
     double posWeights[3][maxDepth][maxConvSize][maxConvSize];
     double paramWeights[3][maxDepth];
     double bias[maxDepth];
+    
+    double DsnakeWeights[4][maxDepth][maxConvSize][maxConvSize];
+    double DposWeights[3][maxDepth][maxConvSize][maxConvSize];
+    double DparamWeights[3][maxDepth];
+    double Dbias[maxDepth];
     
     void initialize();
     void pass(networkInput* inputs, double* outputs);
@@ -214,8 +220,7 @@ public:
     void setAction(Environment* currState, int actionIndex);
     void setAgentAction(Environment* currState, int actionIndex);
     void setChanceAction(Environment* currState, int actionIndex);
-    void inputAgent(Agent* a);
-    void inputSymmetric(Agent* a, int t);
+    void inputSymmetric(networkInput* a, int t);
     void copyEnv(Environment* e);
     void print();// optional function for debugging
 };
@@ -233,7 +238,7 @@ public:
     }
     
     void trainAgent(Agent* a){
-        e.inputSymmetric(a, rand()%8);
+        e.inputSymmetric(&a->input, rand()%8);
         a->expected = expectedValue;
         a->backProp();
     }
