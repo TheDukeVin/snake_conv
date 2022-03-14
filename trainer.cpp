@@ -60,7 +60,9 @@ void Trainer::trainTree(){
         newData = new Data(&states[roots[i]], finalScore);
         dq->enqueue(newData);
     }
-    dq->trainAgent(&a);
+    if(rand() % 3 == 0){
+        dq->trainAgent(&a);
+    }
 }
 
 int Trainer::evalGame(){ // return index of the final state in states.

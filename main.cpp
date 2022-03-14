@@ -43,8 +43,14 @@ int main()
 {
     srand((unsigned)time(NULL));
     start_time = time(NULL);
-    ofstream fout(outAddress);
-    fout.close();
+    ofstream fout1("small.out");
+    fout1.close();
+    ofstream fout2("med.out");
+    fout2.close();
+    ofstream fout3("large.out");
+    fout3.close();
+    ofstream fout4(outAddress);
+    fout4.close();
     t.a.netIn = new ifstream("SnakeConvIn.txt");
     t.a.netOut = new ofstream("SnakeConvOut.txt");
     t.a.initInput(3, 6, 6, 3, 3);
@@ -55,7 +61,7 @@ int main()
     t.a.randomize(0.2);
     t.a.resetGradient();
     
-    for(int i=0; i<100; i++){
+    for(int i=0; i<40; i++){
         run_trial(0);
         run_trial(1);
         run_trial(2);
