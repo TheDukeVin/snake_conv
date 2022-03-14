@@ -22,7 +22,7 @@ void Trainer::initializeNode(int currNode){
     sumScore[currNode] = 0;
 }
 
-double Trainer::trainTree(){
+void Trainer::trainTree(){
     states[0].initialize();
     initializeNode(0);
     currRoot = 0;
@@ -61,7 +61,6 @@ double Trainer::trainTree(){
         dq->enqueue(newData);
     }
     dq->trainAgent(&a);
-    return finalScore;
 }
 
 int Trainer::evalGame(){ // return index of the final state in states.
@@ -163,7 +162,7 @@ double Trainer::evaluate(){
 }
 
 void Trainer::expandPath(){
-    //fout<<"New path at "<<currRoot<<'\n';
+    //cout<<"New path at "<<currRoot<<'\n';
     int currNode = currRoot;
     int nextNode,nextAction;
     int count = 0;
@@ -213,7 +212,7 @@ void Trainer::expandPath(){
         initializeNode(index);
         //fout<<"New state:\n";
         //states[index].print();
-        states[index].inputSymmetric(&a.input, rand()%8);
+        states[index].inputSymmetric(a.input, rand()%8);
         a.pass();
         newVal = a.output;
         path[count] = index;

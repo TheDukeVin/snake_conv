@@ -29,12 +29,17 @@ using namespace std;
 
 //training deatils
 
+#define learnRate 0.01
 #define momentum 0.8
+#define maxNorm 1
+#define batchSize 1000
+#define mult (learnRate / batchSize)
+
 #define scoreNorm 5
 #define numBatches 1
-#define maxQueueSize 15000
+#define queueSize 4000
 
-#define numGames 1501
+#define numGames 701
 #define numPaths 120
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
@@ -43,88 +48,91 @@ using namespace std;
 
 //network details
 
-#define numLayers 3
+#define numLayers 4
 #define maxNodes 144
 #define maxDepth 7
 #define maxConvSize 3
-#define startingParameterRange 0.2
-
 
 const string outAddress = "snake_conv.txt";
-const string netAddress = "snakeConv_net.txt";
 
 double squ(double x);
 
-// Network things
+// For the network
+double randWeight(double startingParameterRange);
 
-double randWeight();
 double nonlinear(double x);
 
-//If f = nonlinear, then this function is (f' \circ f^{-1}).
+// If f = nonlinear, then this function is (f' \circ f^{-1}).
 double dinvnonlinear(double x);
 
-class ConvLayer{
+class Layer{
+public:
+    ifstream* netIn;
+    ofstream* netOut;
+    int numParams, numWeights, numBias;
+    double* params;
+    double* weights;
+    double* bias;
+    double* Dparams;
+    double* Dweights;
+    double* Dbias;
+    virtual void pass(double* inputs, double* outputs){};
+    virtual void backProp(double* inputs, double* Dinputs, double* Doutputs){};
+    virtual void accumulateGradient(double* inputs, double* Doutputs){};
+    void setupParams();
+    void randomize(double startingParameterRange);
+    void resetGradient();
+    void updateParameters();
+    void save();
+    void readNet();
+};
+
+class ConvLayer : public Layer{
 public:
     int inputDepth, inputHeight, inputWidth;
     int outputDepth, outputHeight, outputWidth;
     int convHeight, convWidth;
     int shiftr, shiftc;
+    int w1, w2, w3;
+    /*
     double weights[maxDepth][maxDepth][maxConvSize][maxConvSize]; // accessed in inputl, outputl, r, c.
     double bias[maxDepth];
     double Dweights[maxDepth][maxDepth][maxConvSize][maxConvSize];
-    double Dbias[maxDepth];
+    double Dbias[maxDepth];*/
     
-    void initialize();
-    void pass(double* inputs, double* outputs);
-    void backProp(double* inputs, double* Dinputs, double* Doutputs);
-    void resetGradient();
-    void accumulateGradient(double* inputs, double* Doutputs);
-    void updateParameters(double mult);
-    void save();
+    ConvLayer(int inD, int inH, int inW, int outD, int outH, int outW, int convH, int convW);
+    
+    virtual void pass(double* inputs, double* outputs);
+    virtual void backProp(double* inputs, double* Dinputs, double* Doutputs);
+    virtual void accumulateGradient(double* inputs, double* Doutputs);
 };
 
-class PoolLayer{
+class PoolLayer : public Layer{
 public:
     int inputDepth, inputHeight, inputWidth;
     int outputDepth, outputHeight, outputWidth;
     int maxIndices[maxNodes];
     
-    void pass(double* inputs, double* outputs);
-    void backProp(double* inputs, double* Dinputs, double* Doutputs);
-    void save();
+    PoolLayer(int inD, int inH, int inW, int outD, int outH, int outW);
+    
+    virtual void pass(double* inputs, double* outputs);
+    virtual void backProp(double* inputs, double* Dinputs, double* Doutputs);
 };
 
-class DenseLayer{
+class DenseLayer : public Layer{
 public:
     int inputSize, outputSize;
+    /*
     double weights[maxNodes][maxNodes];
     double bias[maxNodes];
     double Dweights[maxNodes][maxNodes];
-    double Dbias[maxNodes];
+    double Dbias[maxNodes];*/
     
-    void randomize();
-    void pass(double* inputs, double* outputs);
-    void resetGradient();
-    void accumulateGradient(double* inputs, double* Doutputs);
-    void updateParameters(double mult);
-    void backProp(double* inputs, double* Dinputs, double* Doutputs);
-    void save();
-};
-
-class Layer{
-public:
-    int type;
-    ConvLayer cl;
-    PoolLayer pl;
-    DenseLayer dl;
+    DenseLayer(int inSize, int outSize);
     
-    void randomize();
-    void pass(double* inputs, double* outputs);
-    void backProp(double* inputs, double* Dinputs, double* Doutputs);
-    void resetGradient();
-    void accumulateGradient(double* inputs, double* Doutputs);
-    void updateParameters(double mult);
-    void save();
+    virtual void pass(double* inputs, double* outputs);
+    virtual void backProp(double* inputs, double* Dinputs, double* Doutputs);
+    virtual void accumulateGradient(double* inputs, double* Doutputs);
 };
 
 
@@ -136,37 +144,36 @@ struct networkInput{
     double param[3]; // timer, score, and actionType. score and timer are normalized.
 };
 
-class InputLayer{
+class InputLayer : public Layer{
 public:
     int outputDepth, outputHeight, outputWidth;
     int convHeight, convWidth;
     int shiftr, shiftc;
     int posShiftr, posShiftc;
-    double snakeWeights[4][maxDepth][maxConvSize][maxConvSize]; // accessed in cellType, outputl, r, c.
-    double posWeights[3][maxDepth][maxConvSize][maxConvSize];
-    double paramWeights[3][maxDepth];
-    double bias[maxDepth];
+    int w1, w2, w3;
     
-    double DsnakeWeights[4][maxDepth][maxConvSize][maxConvSize];
-    double DposWeights[3][maxDepth][maxConvSize][maxConvSize];
-    double DparamWeights[3][maxDepth];
-    double Dbias[maxDepth];
+    networkInput* env;
     
-    void initialize();
-    void pass(networkInput* inputs, double* outputs);
-    void resetGradient();
-    void accumulateGradient(networkInput* inputs, double* Doutputs);
-    void updateParameters(double mult);
-    void save();
+    double* snakeWeights; // accessed in cellType, outputl, r, c.
+    double* posWeights;
+    double* paramWeights;
+    
+    double* DsnakeWeights;
+    double* DposWeights;
+    double* DparamWeights;
+    
+    InputLayer(int outD, int outH, int outW, int convH, int convW, networkInput* input);
+    
+    virtual void pass(double* inputs, double* outputs);
+    virtual void accumulateGradient(double* inputs, double* Doutputs);
 };
 
 class Agent{
 public:
-    InputLayer il;
-    networkInput input;
-    Layer layers[numLayers];
+    networkInput* input;
+    Layer* layers[numLayers];
     double activation[numLayers+1][maxNodes];
-    double Dbias[numLayers+1][maxNodes]; // Dbias aligned with activation nodes.
+    double Dbias[numLayers][maxNodes];
     double output;
     double expected;
     
@@ -174,18 +181,24 @@ public:
     int layerIndex;
     int prevDepth, prevHeight, prevWidth;
     
+    // For file I/O
+    ifstream* netIn;
+    ofstream* netOut;
+    
+    void setupIO();
     void initInput(int depth, int height, int width, int convHeight, int convWidth);
     void addConvLayer(int depth, int height, int width, int convHeight, int convWidth);
     void addPoolLayer(int depth, int height, int width);
     void addDenseLayer(int numNodes);
-    void randomize();
+    void randomize(double startingParameterRange);
     
     // For network usage and training
     void pass();
     void resetGradient();
     void backProp();
-    void updateParameters(double mult);
+    void updateParameters();
     void save();
+    void readNet();
 };
 
 
@@ -234,13 +247,8 @@ public:
 
 class DataQueue{
 public:
-    Data* queue[maxQueueSize];
-    int queueSize;
+    Data* queue[queueSize];
     int index;
-    int validLength;
-    
-    double mult;
-    int batchSize;
     
     DataQueue();
     void enqueue(Data* d);
@@ -249,9 +257,9 @@ public:
 
 // Trainer
 
+
 class Trainer{
 public:
-    
     Environment* states;
     DataQueue* dq;
     
@@ -261,8 +269,6 @@ public:
     Trainer(Environment* givenStates, DataQueue* givendq){
         states = givenStates;
         dq = givendq;
-        a.randomize();
-        a.resetGradient();
         exploitationFactor = 1;
     }
     
@@ -278,8 +284,8 @@ public:
     double actionProbs[numAgentActions];
     
     void initializeNode(int currNode);
-    double trainTree(); // return final score of training game.
-    int evalGame(); // return index of the final state in states.
+    void trainTree();
+    int evalGame();// return index of the final state in states.
     void printGame();
     double evaluate();
     

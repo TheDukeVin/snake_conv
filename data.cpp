@@ -13,29 +13,26 @@ Data::Data(Environment* givenEnv, double givenExpected){
 }
 
 void Data::trainAgent(Agent* a){
-    e.inputSymmetric(&a->input, rand()%8);
+    e.inputSymmetric(a->input, rand()%8);
     a->expected = expectedValue;
     a->backProp();
 }
 
 DataQueue::DataQueue(){
     index = 0;
-    validLength = 1;
 }
 
 void DataQueue::enqueue(Data* d){
-    queue[index] = d;
+    queue[index%queueSize] = d;
     index++;
-    validLength = max(validLength, index);
-    if(index == queueSize) index = 0;
 }
 
 void DataQueue::trainAgent(Agent* a){
     int i,j;
     for(i=0; i<numBatches; i++){
         for(j=0; j<batchSize; j++){
-            queue[rand() % validLength]->trainAgent(a);
+            queue[rand() % min(index,queueSize)]->trainAgent(a);
         }
-        a->updateParameters(mult);
+        a->updateParameters();
     }
 }
