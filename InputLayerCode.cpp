@@ -157,16 +157,18 @@ void InputLayer::accumulateGradient(networkInput* inputs, double* Doutputs){
     }
 }
 
-void InputLayer::updateParameters(){
+void InputLayer::updateParameters(double mult){
     int i,j,r,c;
     for(j=0; j<outputDepth; j++){
         for(r=0; r<convHeight; r++){
             for(c=0; c<convWidth; c++){
                 for(i=0; i<4; i++){
                     snakeWeights[i][j][r][c] -= DsnakeWeights[i][j][r][c] * mult;
+                    DsnakeWeights[i][j][r][c] *= momentum;
                 }
                 for(i=0; i<3; i++){
                     posWeights[i][j][r][c] -= DposWeights[i][j][r][c] * mult;
+                    DposWeights[i][j][r][c] *= momentum;
                 }
             }
         }
@@ -174,19 +176,21 @@ void InputLayer::updateParameters(){
     for(i=0; i<3; i++){
         for(j=0; j<outputDepth; j++){
             paramWeights[i][j] -= DparamWeights[i][j] * mult;
+            DparamWeights[i][j] *= momentum;
         }
     }
     for(i=0; i<outputDepth; i++){
         bias[i] -= Dbias[i] * mult;
+        Dbias[i] *= momentum;
     }
 }
 
 void InputLayer::save(){
     ofstream netOut(netAddress, ios::app);
-    netOut<<"Output dimensions: "<<outputDepth<<" x "<<outputHeight<<" x "<<outputWidth<<'\n';
-    netOut<<"Conv dimensions: "<<convHeight<<" x "<<convWidth<<'\n';
+    //netOut<<"Output dimensions: "<<outputDepth<<" x "<<outputHeight<<" x "<<outputWidth<<'\n';
+    //netOut<<"Conv dimensions: "<<convHeight<<" x "<<convWidth<<'\n';
     int i,j,r,c;
-    netOut<<"Snake Weights:\n";
+    //netOut<<"Snake Weights:\n";
     for(i=0; i<4; i++){
         for(j=0; j<outputDepth; j++){
             for(r=0; r<convHeight; r++){
@@ -199,7 +203,7 @@ void InputLayer::save(){
         }
         netOut<<'\n';
     }
-    netOut<<"\nPos Weights:\n";
+    //netOut<<"\nPos Weights:\n";
     for(i=0; i<3; i++){
         for(j=0; j<outputDepth; j++){
             for(r=0; r<convHeight; r++){
@@ -212,14 +216,14 @@ void InputLayer::save(){
         }
         netOut<<'\n';
     }
-    netOut<<"\nParam Weights:\n";
+    //netOut<<"\nParam Weights:\n";
     for(i=0; i<3; i++){
         for(j=0; j<outputDepth; j++){
             netOut << paramWeights[i][j] << ' ';
         }
         netOut<<'\n';
     }
-    netOut<<"\nBias:\n";
+    //netOut<<"\nBias:\n";
     for(i=0; i<outputDepth; i++){
         netOut << bias[i] << ' ';
     }

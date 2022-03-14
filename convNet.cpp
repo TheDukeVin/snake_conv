@@ -133,27 +133,30 @@ void ConvLayer::accumulateGradient(double* inputs, double* Doutputs){
     }
 }
 
-void ConvLayer::updateParameters(){
+void ConvLayer::updateParameters(double mult){
     int i,j,r,c;
     for(i=0; i<inputDepth; i++){
         for(j=0; j<outputDepth; j++){
             for(r=0; r<convHeight; r++){
                 for(c=0; c<convWidth; c++){
                     weights[i][j][r][c] -= Dweights[i][j][r][c] * mult;
+                    Dweights[i][j][r][c] *= momentum;
                 }
             }
         }
     }
     for(i=0; i<outputDepth; i++){
         bias[i] -= Dbias[i] * mult;
+        Dbias[i] *= momentum;
     }
 }
 
 void ConvLayer::save(){
     ofstream netOut(netAddress, ios::app);
+    /*
     netOut<<"Input dimensions: "<<inputDepth<<" x "<<inputHeight<<" x "<<inputWidth<<'\n';
     netOut<<"Output dimensions: "<<outputDepth<<" x "<<outputHeight<<" x "<<outputWidth<<'\n';
-    netOut<<"Conv dimensions: "<<convHeight<<" x "<<convWidth<<'\n';
+    netOut<<"Conv dimensions: "<<convHeight<<" x "<<convWidth<<'\n';*/
     int i,j,r,c;
     for(i=0; i<inputDepth; i++){
         for(j=0; j<outputDepth; j++){
@@ -215,8 +218,8 @@ void PoolLayer::backProp(double* inputs, double* Dinputs, double* Doutputs){
 
 void PoolLayer::save(){
     ofstream netOut(netAddress, ios::app);
-    netOut<<"Input dimensions: "<<inputDepth<<" x "<<inputHeight<<" x "<<inputWidth<<'\n';
-    netOut<<"Output dimensions: "<<outputDepth<<" x "<<outputHeight<<" x "<<outputWidth<<'\n';
+    //netOut<<"Input dimensions: "<<inputDepth<<" x "<<inputHeight<<" x "<<inputWidth<<'\n';
+    //netOut<<"Output dimensions: "<<outputDepth<<" x "<<outputHeight<<" x "<<outputWidth<<'\n';
     netOut.close();
 }
 
@@ -266,15 +269,17 @@ void DenseLayer::accumulateGradient(double* inputs, double* Doutputs){
     }
 }
 
-void DenseLayer::updateParameters(){
+void DenseLayer::updateParameters(double mult){
     int i,j;
     for(i=0; i<inputSize; i++){
         for(j=0; j<outputSize; j++){
             weights[i][j] -= Dweights[i][j] * mult;
+            Dweights[i][j] *= momentum;
         }
     }
     for(i=0; i<outputSize; i++){
         bias[i] -= Dbias[i] * mult;
+        Dbias[i] *= momentum;
     }
 }
 
@@ -369,15 +374,15 @@ void Layer::accumulateGradient(double* inputs, double* Doutputs){
     }
 }
 
-void Layer::updateParameters(){
+void Layer::updateParameters(double mult){
     if(type == 1){
-        cl.updateParameters();
+        cl.updateParameters(mult);
     }
     if(type == 2){
         // pass
     }
     if(type == 3){
-        dl.updateParameters();
+        dl.updateParameters(mult);
     }
 }
 
@@ -479,10 +484,10 @@ void Agent::backProp(){
     il.accumulateGradient(&input, Dbias[0]);
 }
 
-void Agent::updateParameters(){
-    il.updateParameters();
+void Agent::updateParameters(double mult){
+    il.updateParameters(mult);
     for(int l=0; l<numLayers; l++){
-        layers[l].updateParameters();
+        layers[l].updateParameters(mult);
     }
 }
 
@@ -490,7 +495,7 @@ void Agent::save(){
     il.save();
     for(int l=0; l<numLayers; l++){
         ofstream netOut(netAddress, ios::app);
-        netOut<<"Layer "<<l<<":\n";
+        //netOut<<"Layer "<<l<<":\n";
         netOut.close();
         layers[l].save();
     }

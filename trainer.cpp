@@ -22,7 +22,7 @@ void Trainer::initializeNode(int currNode){
     sumScore[currNode] = 0;
 }
 
-void Trainer::trainTree(){
+double Trainer::trainTree(){
     states[0].initialize();
     initializeNode(0);
     currRoot = 0;
@@ -61,6 +61,7 @@ void Trainer::trainTree(){
         dq->enqueue(newData);
     }
     dq->trainAgent(&a);
+    return finalScore;
 }
 
 int Trainer::evalGame(){ // return index of the final state in states.

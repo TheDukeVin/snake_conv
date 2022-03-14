@@ -29,16 +29,12 @@ using namespace std;
 
 //training deatils
 
-#define learnRate 0.1
-//#define momentum 0.9
-#define batchSize 1000
-#define mult (learnRate / batchSize)
-#define numEval 100
+#define momentum 0.8
 #define scoreNorm 5
-#define numBatches 2
-#define queueSize 40000
+#define numBatches 1
+#define maxQueueSize 15000
 
-#define numGames 701
+#define numGames 1501
 #define numPaths 120
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
@@ -51,7 +47,7 @@ using namespace std;
 #define maxNodes 144
 #define maxDepth 7
 #define maxConvSize 3
-#define startingParameterRange 0.05
+#define startingParameterRange 0.2
 
 
 const string outAddress = "snake_conv.txt";
@@ -83,7 +79,7 @@ public:
     void backProp(double* inputs, double* Dinputs, double* Doutputs);
     void resetGradient();
     void accumulateGradient(double* inputs, double* Doutputs);
-    void updateParameters();
+    void updateParameters(double mult);
     void save();
 };
 
@@ -110,7 +106,7 @@ public:
     void pass(double* inputs, double* outputs);
     void resetGradient();
     void accumulateGradient(double* inputs, double* Doutputs);
-    void updateParameters();
+    void updateParameters(double mult);
     void backProp(double* inputs, double* Dinputs, double* Doutputs);
     void save();
 };
@@ -127,7 +123,7 @@ public:
     void backProp(double* inputs, double* Dinputs, double* Doutputs);
     void resetGradient();
     void accumulateGradient(double* inputs, double* Doutputs);
-    void updateParameters();
+    void updateParameters(double mult);
     void save();
 };
 
@@ -160,7 +156,7 @@ public:
     void pass(networkInput* inputs, double* outputs);
     void resetGradient();
     void accumulateGradient(networkInput* inputs, double* Doutputs);
-    void updateParameters();
+    void updateParameters(double mult);
     void save();
 };
 
@@ -188,7 +184,7 @@ public:
     void pass();
     void resetGradient();
     void backProp();
-    void updateParameters();
+    void updateParameters(double mult);
     void save();
 };
 
@@ -232,46 +228,26 @@ public:
     Environment e;
     double expectedValue;
     
-    Data(Environment* givenEnv, double givenExpected){
-        e.copyEnv(givenEnv);
-        expectedValue = givenExpected;
-    }
-    
-    void trainAgent(Agent* a){
-        e.inputSymmetric(&a->input, rand()%8);
-        a->expected = expectedValue;
-        a->backProp();
-    }
+    Data(Environment* givenEnv, double givenExpected);
+    void trainAgent(Agent* a);
 };
 
 class DataQueue{
 public:
-    Data* queue[queueSize];
+    Data* queue[maxQueueSize];
+    int queueSize;
     int index;
+    int validLength;
     
-    DataQueue(){
-        index = 0;
-    }
+    double mult;
+    int batchSize;
     
-    void enqueue(Data* d){
-        queue[index%queueSize] = d;
-        index++;
-    }
-    
-    void trainAgent(Agent* a){
-        int i,j;
-        for(i=0; i<numBatches; i++){
-            a->resetGradient();
-            for(j=0; j<batchSize; j++){
-                queue[rand() % min(index,queueSize)]->trainAgent(a);
-            }
-            a->updateParameters();
-        }
-    }
+    DataQueue();
+    void enqueue(Data* d);
+    void trainAgent(Agent* a);
 };
 
 // Trainer
-
 
 class Trainer{
 public:
@@ -302,8 +278,8 @@ public:
     double actionProbs[numAgentActions];
     
     void initializeNode(int currNode);
-    void trainTree();
-    int evalGame();// return index of the final state in states.
+    double trainTree(); // return final score of training game.
+    int evalGame(); // return index of the final state in states.
     void printGame();
     double evaluate();
     
