@@ -30,7 +30,7 @@ using namespace std;
 //training deatils
 
 #define learnRate 0.01
-#define momentum 0.8
+#define momentum 0.9
 #define maxNorm 1
 #define batchSize 2000
 #define mult (learnRate / batchSize)
