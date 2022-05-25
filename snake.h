@@ -30,7 +30,7 @@ using namespace std;
 
 //training deatils
 
-#define learnRate 0.05
+#define learnRate 0.03
 #define momentum 0
 #define maxNorm 1
 #define batchSize 2000
@@ -40,7 +40,7 @@ using namespace std;
 #define numBatches 1
 #define queueSize 12000
 
-#define numGames 1501
+#define numGames 1500
 #define numPaths 120
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
@@ -89,7 +89,6 @@ public:
     void readNet();
     
     virtual ~Layer(){}
-    virtual void setInput(networkInput* _env){}
 };
 
 class ConvLayer : public Layer{
@@ -161,9 +160,6 @@ public:
     int w1, w2, w3;
     
     networkInput* env;
-    virtual void setInput(networkInput* _env){
-        env = _env;
-    }
     
     double* snakeWeights; // accessed in cellType, outputl, r, c.
     double* posWeights;
@@ -211,8 +207,8 @@ public:
     void resetGradient();
     void backProp();
     void updateParameters();
-    void save();
-    void readNet();
+    void save(string fileName);
+    void readNet(string fileName);
     
 private:
     // For network initiation
@@ -304,7 +300,7 @@ public:
     double actionProbs[numAgentActions];
     
     void initializeNode(int currNode);
-    void trainTree();
+    double trainTree();
     int evalGame();// return index of the final state in states.
     void printGame();
     double evaluate();

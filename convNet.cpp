@@ -335,7 +335,7 @@ void Agent::backProp(){
         layers[l]->accumulateGradient(activation[l], Dbias[l]);
         layers[l]->backProp(activation[l], Dbias[l-1], Dbias[l]);
     }
-    layers[0]->accumulateGradient(activation[0], Dbias[0]);
+    layers[0]->accumulateGradient(NULL, Dbias[0]);
 }
 
 void Agent::updateParameters(){
@@ -344,16 +344,20 @@ void Agent::updateParameters(){
     }
 }
 
-void Agent::save(){
+void Agent::save(string fileName){
+    netOut = ofstream(fileName);
     for(int l=0; l<numLayers; l++){
         layers[l]->save();
     }
+    netOut.close();
 }
 
-void Agent::readNet(){
+void Agent::readNet(string fileName){
+    netIn = ifstream(fileName);
     for(int l=0; l<numLayers; l++){
         layers[l]->readNet();
     }
+    netIn.close();
 }
 
 void Agent::quickSetup(){
@@ -371,10 +375,9 @@ void Agent::quickSetup(){
         Dbias[l] = new double[maxNodes];
     }
     input = new networkInput;
-    layers[0]->setInput(input);
-    //cout<<"Input layer is "<<input<<'\n';
-    //InputLayer* il = (InputLayer*) layers[0];
-    //il->env = input;
+    InputLayer* il = (InputLayer*) layers[0];
+    il->env = input;
+    setupIO();
     randomize(0.2);
     resetGradient();
 }
