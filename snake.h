@@ -11,6 +11,7 @@
 #include <math.h>
 #include <ctime>
 #include <string>
+#include <vector>
 
 #ifndef snake_h
 #define snake_h
@@ -29,8 +30,8 @@ using namespace std;
 
 //training deatils
 
-#define learnRate 0.01
-#define momentum 0.9
+#define learnRate 0.05
+#define momentum 0
 #define maxNorm 1
 #define batchSize 2000
 #define mult (learnRate / batchSize)
@@ -39,19 +40,12 @@ using namespace std;
 #define numBatches 1
 #define queueSize 12000
 
-#define numGames 1001
+#define numGames 1501
 #define numPaths 120
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
 #define numEvalGames 20
 #define evalZscore 2
-
-//network details
-
-#define numLayers 4
-#define maxNodes 144
-#define maxDepth 7
-#define maxConvSize 3
 
 const string outAddress = "snake_conv.txt";
 
@@ -64,6 +58,14 @@ double nonlinear(double x);
 
 // If f = nonlinear, then this function is (f' \circ f^{-1}).
 double dinvnonlinear(double x);
+
+// Input to the network
+
+struct networkInput{
+    int snake[boardx][boardy];
+    int pos[3][2]; // head, tail, and apple positions
+    double param[3]; // timer, score, and actionType. score and timer are normalized.
+};
 
 class Layer{
 public:
@@ -85,6 +87,9 @@ public:
     void updateParameters();
     void save();
     void readNet();
+    
+    virtual ~Layer(){}
+    virtual void setInput(networkInput* _env){}
 };
 
 class ConvLayer : public Layer{
@@ -105,44 +110,47 @@ public:
     virtual void pass(double* inputs, double* outputs);
     virtual void backProp(double* inputs, double* Dinputs, double* Doutputs);
     virtual void accumulateGradient(double* inputs, double* Doutputs);
+    
+    virtual ~ConvLayer(){
+        delete[] params;
+        delete[] Dparams;
+    }
 };
 
 class PoolLayer : public Layer{
 public:
     int inputDepth, inputHeight, inputWidth;
     int outputDepth, outputHeight, outputWidth;
-    int maxIndices[maxNodes];
+    int* maxIndices;
     
     PoolLayer(int inD, int inH, int inW, int outD, int outH, int outW);
     
     virtual void pass(double* inputs, double* outputs);
     virtual void backProp(double* inputs, double* Dinputs, double* Doutputs);
+    
+    virtual ~PoolLayer(){
+        delete[] maxIndices;
+    }
 };
 
 class DenseLayer : public Layer{
 public:
     int inputSize, outputSize;
-    /*
-    double weights[maxNodes][maxNodes];
-    double bias[maxNodes];
-    double Dweights[maxNodes][maxNodes];
-    double Dbias[maxNodes];*/
     
     DenseLayer(int inSize, int outSize);
     
     virtual void pass(double* inputs, double* outputs);
     virtual void backProp(double* inputs, double* Dinputs, double* Doutputs);
     virtual void accumulateGradient(double* inputs, double* Doutputs);
+    
+    virtual ~DenseLayer(){
+        delete[] params;
+        delete[] Dparams;
+    }
 };
 
 
 // Input layer tailored to snake environment
-
-struct networkInput{
-    int snake[boardx][boardy];
-    int pos[3][2]; // head, tail, and apple positions
-    double param[3]; // timer, score, and actionType. score and timer are normalized.
-};
 
 class InputLayer : public Layer{
 public:
@@ -153,6 +161,9 @@ public:
     int w1, w2, w3;
     
     networkInput* env;
+    virtual void setInput(networkInput* _env){
+        env = _env;
+    }
     
     double* snakeWeights; // accessed in cellType, outputl, r, c.
     double* posWeights;
@@ -166,26 +177,28 @@ public:
     
     virtual void pass(double* inputs, double* outputs);
     virtual void accumulateGradient(double* inputs, double* Doutputs);
+    
+    virtual ~InputLayer(){
+        delete[] params;
+        delete[] Dparams;
+    }
 };
 
 class Agent{
 public:
     networkInput* input;
-    Layer* layers[numLayers];
-    double activation[numLayers+1][maxNodes];
-    double Dbias[numLayers][maxNodes];
+    unsigned long numLayers;
+    unsigned maxNodes = 0;
+    Layer** layers; // keep an array of pointers, since abstract classes need to be accessed by reference.
+    double** activation;
+    double** Dbias;
     double output;
     double expected;
     
-    // For network initiation
-    int layerIndex;
-    int prevDepth, prevHeight, prevWidth;
-    
     // For file I/O
-    ifstream* netIn;
-    ofstream* netOut;
+    ifstream netIn;
+    ofstream netOut;
     
-    void setupIO();
     void initInput(int depth, int height, int width, int convHeight, int convWidth);
     void addConvLayer(int depth, int height, int width, int convHeight, int convWidth);
     void addPoolLayer(int depth, int height, int width);
@@ -193,12 +206,19 @@ public:
     void randomize(double startingParameterRange);
     
     // For network usage and training
+    void quickSetup();
     void pass();
     void resetGradient();
     void backProp();
     void updateParameters();
     void save();
     void readNet();
+    
+private:
+    // For network initiation
+    int prevDepth, prevHeight, prevWidth;
+    vector<Layer*> layerHold;
+    void setupIO();
 };
 
 
