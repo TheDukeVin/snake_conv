@@ -52,7 +52,7 @@ void Layer::resetGradient(){
 
 void Layer::updateParameters(){
     for(int i=0; i<numParams; i++){
-        params[i] -= Dparams[i] * mult;
+        //params[i] -= Dparams[i] * mult;
         Dparams[i] *= momentum;
     }
     // Regularize
@@ -60,9 +60,10 @@ void Layer::updateParameters(){
     for(int i=0; i<numParams; i++){
         sum += squ(params[i]);
     }
-    if(sum < maxNorm * numParams) return;
+    cout<<"Param sum: "<<sum<<'\n';
+    //if(sum <= maxNorm) return;
     for(int i=0; i<numParams; i++){
-        params[i] *= sqrt(maxNorm * numParams / sum);
+        params[i] *= sqrt(maxNorm / sum);
     }
 }
 
@@ -316,7 +317,8 @@ void Agent::randomize(double startingParameterRange){
 }
 
 void Agent::pass(){
-    for(int l=0; l<numLayers; l++){
+    layers[0]->pass(NULL, activation[1]);
+    for(int l=1; l<numLayers; l++){
         layers[l]->pass(activation[l], activation[l+1]);
     }
     output = activation[numLayers][0];
@@ -378,6 +380,6 @@ void Agent::quickSetup(){
     InputLayer* il = (InputLayer*) layers[0];
     il->env = input;
     setupIO();
-    randomize(0.2);
+    randomize(0.1);
     resetGradient();
 }

@@ -66,10 +66,10 @@ void trainCycle(){
     double sum = 0;
     for(int i=0; i<=numGames; i++){
         double score = t.trainTree();
-        //cout<<score<<' ';
+        cout<<i<<'.'<<score<<' ';
         sum += score;
         if(i>0 && i%evalPeriod == 0){
-            cout<<"\nAVERAGE: "<<(sum / evalPeriod)<<'\n';
+            cout<<"\nAVERAGE: "<<(sum / evalPeriod)<<" in iteration "<<i<<'\n';
             sum = 0;
         }
         scores[i%storeNets] = score;
@@ -150,9 +150,9 @@ int main()
     }
      */
     
-    //trainCycle();
+    trainCycle();
     
-    evaluate();
+    //evaluate();
     
     return 0;
     
