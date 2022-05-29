@@ -52,7 +52,7 @@ void Layer::resetGradient(){
 
 void Layer::updateParameters(){
     for(int i=0; i<numParams; i++){
-        //params[i] -= Dparams[i] * mult;
+        params[i] -= Dparams[i] * mult;
         Dparams[i] *= momentum;
     }
     // Regularize
@@ -60,8 +60,8 @@ void Layer::updateParameters(){
     for(int i=0; i<numParams; i++){
         sum += squ(params[i]);
     }
-    cout<<"Param sum: "<<sum<<'\n';
-    //if(sum <= maxNorm) return;
+    //cout<<"Param sum: "<<sum<<'\n';
+    if(sum <= maxNorm) return;
     for(int i=0; i<numParams; i++){
         params[i] *= sqrt(maxNorm / sum);
     }
@@ -283,6 +283,7 @@ void Agent::setupIO(){
 }
 
 void Agent::initInput(int depth, int height, int width, int convHeight, int convWidth){
+    input = new networkInput;
     layerHold.push_back(new InputLayer(depth, height, width, convHeight, convWidth, input));
     prevDepth = depth;
     prevHeight = height;
@@ -376,10 +377,10 @@ void Agent::quickSetup(){
     for(int l=0; l<numLayers; l++){
         Dbias[l] = new double[maxNodes];
     }
-    input = new networkInput;
-    InputLayer* il = (InputLayer*) layers[0];
-    il->env = input;
+    //input = new networkInput;
+    //InputLayer* il = (InputLayer*) layers[0];
+    //il->env = input;
     setupIO();
-    randomize(0.1);
+    randomize(0.5);
     resetGradient();
 }

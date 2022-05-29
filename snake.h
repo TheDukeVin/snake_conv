@@ -30,9 +30,9 @@ using namespace std;
 
 //training deatils
 
-#define learnRate 0
+#define learnRate 0.03
 #define momentum 0.5
-#define maxNorm 10000
+#define maxNorm 1000
 #define batchSize 2000
 #define mult (learnRate / batchSize)
 
@@ -185,7 +185,7 @@ public:
     networkInput* input;
     unsigned long numLayers;
     unsigned maxNodes = 0;
-    Layer** layers; // keep an array of pointers, since abstract classes need to be accessed by reference.
+    Layer** layers; // keep an array of pointers, since derived classes need to be accessed by reference.
     double** activation;
     double** Dbias;
     double output;

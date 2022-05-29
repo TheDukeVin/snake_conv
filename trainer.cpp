@@ -214,6 +214,7 @@ void Trainer::expandPath(){
         states[index].inputSymmetric(a.input, rand()%8);
         a.pass();
         newVal = a.output;
+        assert(abs(newVal) < 1000);
         path[count] = index;
         index++;
         count++;

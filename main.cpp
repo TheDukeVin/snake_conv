@@ -124,16 +124,6 @@ int main()
     srand((unsigned)time(NULL));
     start_time = time(NULL);
     /*
-    ofstream fout1("small.out");
-    fout1.close();
-    ofstream fout2("med.out");
-    fout2.close();
-    ofstream fout3("large.out");
-    fout3.close();
-    ofstream fout5("SnakeConvResults.out");
-    fout5.close();
-    ofstream fout4(outAddress);
-    fout4.close();
     t.a.netIn = new ifstream("SnakeConvIn.txt");
     t.a.netOut = new ofstream("SnakeConvOut.txt");
     t.a.initInput(4, 4, 4, 3, 3);
@@ -153,6 +143,18 @@ int main()
     trainCycle();
     
     //evaluate();
+    
+    /*
+    standardSetup(t.a);
+    Environment env;
+    env.initialize();
+    env.inputSymmetric(t.a.input, 0);
+    t.a.pass();
+    cout<<t.a.output<<'\n';
+    t.a.expected = 5;
+    t.a.backProp();
+    cout<<t.a.layers[0]->Dparams[0]<<'\n';
+     */
     
     return 0;
     
