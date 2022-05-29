@@ -58,7 +58,6 @@ double Trainer::trainTree(){
     for(i=0; i<numStates; i++){
         dq->enqueue(new Data(&states[roots[i]], finalScore));
     }
-    dq->trainAgent(&a);
     return finalScore;
 }
 

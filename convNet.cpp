@@ -30,10 +30,14 @@ double dinvnonlinear(double x){
 
 void Layer::setupParams(){
     numParams = numWeights + numBias;
-    params = new double[numParams];
+    //params = new double[numParams];
+    params = (double*) malloc(numParams * sizeof(double));
+    assert(params != NULL);
     weights = params;
     bias = params + numWeights;
-    Dparams = new double[numParams];
+    //Dparams = new double[numParams];
+    Dparams = (double*) malloc(numParams * sizeof(double));
+    assert(Dparams != NULL);
     Dweights = Dparams;
     Dbias = Dparams + numWeights;
 }
@@ -50,7 +54,7 @@ void Layer::resetGradient(){
     }
 }
 
-void Layer::updateParameters(){
+void Layer::updateParameters(double mult, double momentum){
     for(int i=0; i<numParams; i++){
         params[i] -= Dparams[i] * mult;
         Dparams[i] *= momentum;
@@ -275,13 +279,6 @@ void DenseLayer::accumulateGradient(double* inputs, double* Doutputs){
 
 // ConvNet
 
-void Agent::setupIO(){
-    for(int l=0; l<numLayers; l++){
-        layers[l]->netIn = &netIn;
-        layers[l]->netOut = &netOut;
-    }
-}
-
 void Agent::initInput(int depth, int height, int width, int convHeight, int convWidth){
     input = new networkInput;
     layerHold.push_back(new InputLayer(depth, height, width, convHeight, convWidth, input));
@@ -341,9 +338,9 @@ void Agent::backProp(){
     layers[0]->accumulateGradient(NULL, Dbias[0]);
 }
 
-void Agent::updateParameters(){
+void Agent::updateParameters(double mult, double momentum){
     for(int l=0; l<numLayers; l++){
-        layers[l]->updateParameters();
+        layers[l]->updateParameters(mult, momentum);
     }
 }
 
@@ -377,10 +374,10 @@ void Agent::quickSetup(){
     for(int l=0; l<numLayers; l++){
         Dbias[l] = new double[maxNodes];
     }
-    //input = new networkInput;
-    //InputLayer* il = (InputLayer*) layers[0];
-    //il->env = input;
-    setupIO();
+    for(int l=0; l<numLayers; l++){
+        layers[l]->netIn = &netIn;
+        layers[l]->netOut = &netOut;
+    }
     randomize(0.5);
     resetGradient();
 }

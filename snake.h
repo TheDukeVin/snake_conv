@@ -30,11 +30,8 @@ using namespace std;
 
 //training deatils
 
-#define learnRate 0.03
-#define momentum 0.5
 #define maxNorm 1000
 #define batchSize 2000
-#define mult (learnRate / batchSize)
 
 #define scoreNorm 5
 #define numBatches 1
@@ -84,7 +81,7 @@ public:
     void setupParams();
     void randomize(double startingParameterRange);
     void resetGradient();
-    void updateParameters();
+    void updateParameters(double mult, double momentum);
     void save();
     void readNet();
     
@@ -206,7 +203,7 @@ public:
     void pass();
     void resetGradient();
     void backProp();
-    void updateParameters();
+    void updateParameters(double mult, double momentum);
     void save(string fileName);
     void readNet(string fileName);
     
@@ -214,7 +211,6 @@ private:
     // For network initiation
     int prevDepth, prevHeight, prevWidth;
     vector<Layer*> layerHold;
-    void setupIO();
 };
 
 
@@ -265,6 +261,7 @@ class DataQueue{
 public:
     Data* queue[queueSize];
     int index;
+    double learnRate, momentum;
     
     DataQueue();
     void enqueue(Data* d);

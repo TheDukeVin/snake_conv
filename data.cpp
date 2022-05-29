@@ -33,6 +33,6 @@ void DataQueue::trainAgent(Agent* a){
         for(j=0; j<batchSize; j++){
             queue[rand() % min(index,queueSize)]->trainAgent(a);
         }
-        a->updateParameters();
+        a->updateParameters(learnRate / batchSize, momentum);
     }
 }

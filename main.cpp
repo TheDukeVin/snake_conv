@@ -2,9 +2,6 @@
 
 Snake end value training with Monte Carlo Tree Search.
 Uses MARL framework.
- 
-Experiment 1:
-testing out impact of starting parameter range.
 
 */
 
@@ -60,6 +57,8 @@ void trainCycle(){
     bestScore = 0;
     
     dq.index = 0;
+    dq.learnRate = 0.03;
+    dq.momentum = 0.5;
     
     string netStore = "snakeConv.out";
     
@@ -67,6 +66,12 @@ void trainCycle(){
     for(int i=0; i<=numGames; i++){
         double score = t.trainTree();
         cout<<i<<'.'<<score<<' ';
+        
+        if(score >= 10){
+            dq.learnRate = 0.003;
+        }
+        dq.trainAgent(&t.a);
+        
         sum += score;
         if(i>0 && i%evalPeriod == 0){
             cout<<"\nAVERAGE: "<<(sum / evalPeriod)<<" in iteration "<<i<<'\n';
@@ -140,21 +145,9 @@ int main()
     }
      */
     
-    trainCycle();
+    //trainCycle();
     
-    //evaluate();
-    
-    /*
-    standardSetup(t.a);
-    Environment env;
-    env.initialize();
-    env.inputSymmetric(t.a.input, 0);
-    t.a.pass();
-    cout<<t.a.output<<'\n';
-    t.a.expected = 5;
-    t.a.backProp();
-    cout<<t.a.layers[0]->Dparams[0]<<'\n';
-     */
+    evaluate();
     
     return 0;
     
