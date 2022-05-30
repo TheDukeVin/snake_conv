@@ -57,7 +57,7 @@ bool Environment::isEndState(){
 }
 
 double Environment::getScore(){
-    if(snakeSize == boardx * boardy) return score + maxTime - timer;
+    if(snakeSize == boardx * boardy) return score + 10 + (maxTime - timer) * 0.2;
     return score;
 }
 

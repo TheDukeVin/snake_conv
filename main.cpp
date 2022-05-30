@@ -78,28 +78,16 @@ void testNet(){
 
 void trainCycle(){
     standardSetup(t.a);
-    const int storeNets = 30;
-    Agent nets[storeNets];
-    Agent bestNet;
-    double scores[storeNets];
-    double bestScore;
-    for(int i=0; i<storeNets; i++){
-        standardSetup(nets[i]);
-        scores[i] = 0;
-    }
-    standardSetup(bestNet);
-    bestScore = 0;
+    const int storePeriod = 50;
     
     dq.index = 0;
     dq.learnRate = 0.02;
     dq.momentum = 0.9;
     
-    string netStore = "snakeConv.out";
-    
     double sum = 0;
     for(int i=0; i<=numGames; i++){
         double score = t.trainTree();
-        cout<<i<<'.'<<score<<' ';
+        cout<<score<<' ';
         
         if(score >= 10){
             dq.learnRate = min(dq.learnRate,0.002);
@@ -116,31 +104,12 @@ void trainCycle(){
             cout<<"\nAVERAGE: "<<(sum / evalPeriod)<<" in iteration "<<i<<'\n';
             sum = 0;
         }
-        scores[i%storeNets] = score;
-        t.a.save(netStore);
-        nets[i%storeNets].readNet(netStore);
-        double scoreSum = 0;
-        for(int j=0; j<storeNets; j++){
-            scoreSum += scores[j];
-        }
-        if(scoreSum > bestScore){
-            bestScore = scoreSum;
-            cout<<"Best score: "<<(bestScore / storeNets)<<'\n';
-            int maxIndex = 0;
-            for(int j=1; j<storeNets; j++){
-                if(scores[maxIndex] < scores[j]){
-                    maxIndex = j;
-                }
-            }
-            cout<<"Max score: "<<scores[maxIndex]<<'\n';
-            nets[maxIndex].save(netStore);
-            bestNet.readNet(netStore);
+        if(i % storePeriod == 0){
+            t.a.save("nets/Game" + to_string(i) + ".out");
         }
         
         dq.trainAgent(&t.a);
     }
-    
-    bestNet.save("snakeConv.out");
 }
 
 void evaluate(){
@@ -181,6 +150,7 @@ void manual_game(){
         hold.setAction(&env, actionIndex);
         env.copyEnv(&hold);
     }
+    cout<<"Final Score: "<<env.getScore()<<'\n';
 }
 
 int main()
@@ -190,11 +160,11 @@ int main()
     
     //testNet();
     
-    trainCycle();
+    //trainCycle();
     
     //evaluate();
     
-    //manual_game();
+    manual_game();
     
     return 0;
     
