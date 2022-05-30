@@ -42,6 +42,40 @@ void standardSetup(Agent& net){
     net.quickSetup();
 }
 
+void testNet(){
+    Agent net;
+    standardSetup(net);
+    net.randomize(0.3);
+    for(int i=0; i<boardx; i++){
+        for(int j=0; j<boardy; j++){
+            net.input->snake[i][j] = rand() % 5 - 1;
+        }
+    }
+    for(int i=0; i<3; i++){
+        for(int j=0; j<2; j++){
+            net.input->pos[i][j] = rand() % 6;
+        }
+        net.input->param[i] = (double) rand() / RAND_MAX;
+    }
+    net.expected = (double) rand() / RAND_MAX;
+    
+    net.pass();
+    double base = squ(net.output - net.expected);
+    net.backProp();
+    double ep = 0.000001;
+    
+    for(int l=0; l<net.numLayers; l++){
+        for(int i=0; i<net.layers[l]->numParams; i++){
+            net.layers[l]->params[i] += ep;
+            net.pass();
+            net.layers[l]->params[i] -= ep;
+            double new_error = squ(net.output - net.expected);
+            //cout<< ((new_error - base) / ep) << ' ' << net.layers[l]->Dparams[i]<<'\n';
+            assert( abs((new_error - base) / ep - net.layers[l]->Dparams[i]) < 0.001);
+        }
+    }
+}
+
 void trainCycle(){
     standardSetup(t.a);
     const int storeNets = 30;
@@ -128,22 +162,8 @@ int main()
 {
     srand((unsigned)time(NULL));
     start_time = time(NULL);
-    /*
-    t.a.netIn = new ifstream("SnakeConvIn.txt");
-    t.a.netOut = new ofstream("SnakeConvOut.txt");
-    t.a.initInput(4, 4, 4, 3, 3);
-    t.a.addDenseLayer(30);
-    t.a.addDenseLayer(1);
-    t.a.setupIO();
-    t.a.randomize(0.2);
-    t.a.resetGradient();
     
-    for(int i=0; i<40; i++){
-        run_trial(0);
-        run_trial(1);
-        run_trial(2);
-    }
-     */
+    //testNet();
     
     trainCycle();
     
