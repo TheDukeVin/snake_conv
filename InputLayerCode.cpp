@@ -95,7 +95,7 @@ void InputLayer::accumulateGradient(double* inputs, double* Doutputs){
             }
         }
         for(int i=0; i<3; i++){
-            DparamWeights[i*outputDepth * j] += sum * env->param[i];
+            DparamWeights[i*outputDepth + j] += sum * env->param[i];
         }
         Dbias[j] += sum;
     }

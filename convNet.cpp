@@ -279,12 +279,18 @@ void DenseLayer::accumulateGradient(double* inputs, double* Doutputs){
 
 // ConvNet
 
+int max(int x, int y){
+    if(x<y) return y;
+    return x;
+}
+
 void Agent::initInput(int depth, int height, int width, int convHeight, int convWidth){
     input = new networkInput;
     layerHold.push_back(new InputLayer(depth, height, width, convHeight, convWidth, input));
     prevDepth = depth;
     prevHeight = height;
     prevWidth = width;
+    maxNodes = max(maxNodes, depth * height * width);
 }
 
 void Agent::addConvLayer(int depth, int height, int width, int convHeight, int convWidth){
@@ -292,6 +298,7 @@ void Agent::addConvLayer(int depth, int height, int width, int convHeight, int c
     prevDepth = depth;
     prevHeight = height;
     prevWidth = width;
+    maxNodes = max(maxNodes, depth * height * width);
 }
 
 void Agent::addPoolLayer(int depth, int height, int width){
@@ -299,6 +306,7 @@ void Agent::addPoolLayer(int depth, int height, int width){
     prevDepth = depth;
     prevHeight = height;
     prevWidth = width;
+    maxNodes = max(maxNodes, depth * height * width);
 }
 
 void Agent::addDenseLayer(int numNodes){
@@ -306,6 +314,7 @@ void Agent::addDenseLayer(int numNodes){
     prevDepth = numNodes;
     prevHeight = 1;
     prevWidth = 1;
+    maxNodes = max(maxNodes, numNodes);
 }
 
 void Agent::randomize(double startingParameterRange){
