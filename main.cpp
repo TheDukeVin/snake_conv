@@ -110,7 +110,6 @@ void trainCycle(){
         if(score >= 30){
             dq.learnRate = min(dq.learnRate,0.00025);
         }
-        dq.trainAgent(&t.a);
         
         sum += score;
         if(i>0 && i%evalPeriod == 0){
@@ -137,13 +136,8 @@ void trainCycle(){
             nets[maxIndex].save(netStore);
             bestNet.readNet(netStore);
         }
-    }
-    
-    for(int i=0; i<10; i++){
-        ofstream fout(outAddress, ios::app);
-        fout<<"Printed game "<<i<<'\n';
-        fout.close();
-        t.printGame();
+        
+        dq.trainAgent(&t.a);
     }
     
     bestNet.save("snakeConv.out");
@@ -151,7 +145,7 @@ void trainCycle(){
 
 void evaluate(){
     standardSetup(t.a);
-    t.a.readNet("snakeConv.out");
+    t.a.readNet("snakeConv.in");
     t.evaluate();
     
     ofstream fout4(outAddress);
@@ -161,6 +155,31 @@ void evaluate(){
         fout<<"Printed game "<<i<<'\n';
         fout.close();
         t.printGame();
+    }
+}
+
+void manual_game(){
+    Environment env, hold;
+    env.initialize();
+    char dirs[4] = {'d', 's', 'a', 'w'};
+    while(!env.isEndState()){
+        env.log();
+        int actionIndex = -1;
+        if(env.actionType == 0){
+            char dir;
+            cin>>dir;
+            for(int i=0; i<4; i++){
+                if(dir == dirs[i]){
+                    actionIndex = i;
+                }
+            }
+        }
+        else{
+            actionIndex = t.getRandomChanceAction(&env);
+        }
+        assert(actionIndex >= 0);
+        hold.setAction(&env, actionIndex);
+        env.copyEnv(&hold);
     }
 }
 
@@ -174,6 +193,8 @@ int main()
     trainCycle();
     
     //evaluate();
+    
+    //manual_game();
     
     return 0;
     

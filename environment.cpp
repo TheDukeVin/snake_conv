@@ -248,3 +248,27 @@ void Environment::print(){ // optional function for debugging
     }
     fout.close();
 }
+
+void Environment::log(){ // optional function for debugging
+    cout<<"Timer: "<<timer<<'\n';
+    cout<<"Score: "<<score<<'\n';
+    cout<<"Action type: "<<actionType<<'\n';
+    cout<<"Snake size: "<<snakeSize<<'\n';
+    int i,j;
+    for(i=0; i<boardx; i++){
+        for(j=0; j<boardy; j++){
+            if(i == applex && j == appley){
+                cout<<'A'<<' ';
+            }
+            else{
+                if(snake[i][j] == -1){
+                    cout<<". ";
+                }
+                else{
+                    cout<<snake[i][j]<<' ';
+                }
+            }
+        }
+        cout<<'\n';
+    }
+}

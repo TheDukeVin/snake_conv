@@ -38,7 +38,7 @@ using namespace std;
 #define queueSize 20000
 
 #define numGames 1500
-#define numPaths 200
+#define numPaths 400
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
 #define numEvalGames 20
@@ -246,6 +246,7 @@ public:
     void inputSymmetric(networkInput* a, int t);
     void copyEnv(Environment* e);
     void print();// optional function for debugging
+    void log();// optional function for debugging
 };
 
 // Data things
