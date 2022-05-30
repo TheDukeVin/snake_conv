@@ -387,6 +387,6 @@ void Agent::quickSetup(){
         layers[l]->netIn = &netIn;
         layers[l]->netOut = &netOut;
     }
-    randomize(0.5);
+    randomize(0.3);
     resetGradient();
 }

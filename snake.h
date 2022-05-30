@@ -31,11 +31,11 @@ using namespace std;
 //training deatils
 
 #define maxNorm 100
-#define batchSize 3000
+#define batchSize 2000
 
 #define scoreNorm 5
 #define numBatches 1
-#define queueSize 40000
+#define queueSize 20000
 
 #define numGames 1500
 #define numPaths 200
@@ -221,9 +221,10 @@ const int numActions[2] = {numAgentActions, numChanceActions};
 const int dir[4][2] = {{0,1}, {1,0}, {0,-1}, {-1,0}};
 
 class Environment{
+private:
+    double score;
 public:
     int timer;
-    double score;
     int actionType; // 0 = action state, 1 = reaction state.
     
     int snakeSize;
@@ -235,6 +236,7 @@ public:
     void initialize();
     
     bool isEndState();
+    double getScore();
     bool validAction(int actionIndex); // returns whether the action is valid.
     bool validAgentAction(int d);
     bool validChanceAction(int pos);

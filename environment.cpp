@@ -56,6 +56,11 @@ bool Environment::isEndState(){
     return true;
 }
 
+double Environment::getScore(){
+    if(snakeSize == boardx * boardy) return score + maxTime - timer;
+    return score;
+}
+
 bool Environment::validAction(int actionIndex){ // returns whether the action is valid.
     if(actionType == 0){
         return validAgentAction(actionIndex);

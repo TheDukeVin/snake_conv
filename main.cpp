@@ -91,7 +91,7 @@ void trainCycle(){
     bestScore = 0;
     
     dq.index = 0;
-    dq.learnRate = 0.03;
+    dq.learnRate = 0.02;
     dq.momentum = 0.9;
     
     string netStore = "snakeConv.out";
@@ -102,7 +102,13 @@ void trainCycle(){
         cout<<i<<'.'<<score<<' ';
         
         if(score >= 10){
-            dq.learnRate = min(dq.learnRate,0.003);
+            dq.learnRate = min(dq.learnRate,0.002);
+        }
+        if(score >= 20){
+            dq.learnRate = min(dq.learnRate,0.0005);
+        }
+        if(score >= 30){
+            dq.learnRate = min(dq.learnRate,0.00025);
         }
         dq.trainAgent(&t.a);
         

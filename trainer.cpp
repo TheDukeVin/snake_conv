@@ -54,7 +54,7 @@ double Trainer::trainTree(){
         roots[s] = currRoot;
     }
     int numStates = s+1;
-    double finalScore = states[currRoot].score;
+    double finalScore = states[currRoot].getScore();
     for(i=0; i<numStates; i++){
         dq->enqueue(new Data(&states[roots[i]], finalScore));
     }
@@ -143,9 +143,9 @@ double Trainer::evaluate(){
     double scoreSquareSum = 0;
     for(int i=0; i<numEvalGames; i++){
         endState = evalGame();
-        scoreSum += states[endState].score;
+        scoreSum += states[endState].getScore();
         sizeSum += states[endState].snakeSize;
-        scoreSquareSum += squ(states[endState].score);
+        scoreSquareSum += squ(states[endState].getScore());
     }
     double averageScore = scoreSum / numEvalGames;
     double variance = scoreSquareSum / numEvalGames - squ(averageScore);
@@ -233,7 +233,7 @@ void Trainer::expandPath(){
         */
     }
     else{
-        newVal = states[currNode].score;
+        newVal = states[currNode].getScore();
         path[count] = currNode;
         count++;
     }
