@@ -22,7 +22,7 @@ using namespace std;
 
 #define boardx 6
 #define boardy 6
-#define maxTime 160
+#define maxTime 200
 
 #define numAgentActions 4
 #define numChanceActions (boardx*boardy)
@@ -38,7 +38,7 @@ using namespace std;
 #define queueSize 40000
 
 #define numGames 1500
-#define numPaths 800
+#define numPaths 400
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
 #define numEvalGames 100
