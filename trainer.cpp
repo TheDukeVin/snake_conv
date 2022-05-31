@@ -141,11 +141,15 @@ double Trainer::evaluate(){
     double scoreSum = 0;
     double sizeSum = 0;
     double scoreSquareSum = 0;
+    int numCompletes = 0;
     for(int i=0; i<numEvalGames; i++){
         endState = evalGame();
         scoreSum += states[endState].getScore();
         sizeSum += states[endState].snakeSize;
         scoreSquareSum += squ(states[endState].getScore());
+        if(states[endState].snakeSize == boardx * boardy){
+            numCompletes++;
+        }
     }
     double averageScore = scoreSum / numEvalGames;
     double variance = scoreSquareSum / numEvalGames - squ(averageScore);
@@ -153,8 +157,7 @@ double Trainer::evaluate(){
     cout<<"Average snake size: "<<(sizeSum/numEvalGames)<<'\n';
     cout<<"Average score: "<<averageScore<<'\n';
     cout<<"Confidence interval: (" << (averageScore - SE) << ", " << (averageScore + SE) << ")\n";
-    //exploitationFactor = averageScore * exploitationMultiplier;
-    cout<<"Exploitation factor is now: "<<exploitationFactor<<'\n';
+    cout<<"Proportion of completions: "<<((double) numCompletes / numEvalGames)<<'\n';
     cout<<'\n';
     return averageScore;
 }

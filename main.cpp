@@ -162,9 +162,9 @@ int main()
     
     //trainCycle();
     
-    //evaluate();
+    evaluate();
     
-    manual_game();
+    //manual_game();
     
     return 0;
     

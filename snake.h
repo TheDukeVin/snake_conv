@@ -38,10 +38,10 @@ using namespace std;
 #define queueSize 40000
 
 #define numGames 1500
-#define numPaths 400
+#define numPaths 800
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
-#define numEvalGames 20
+#define numEvalGames 100
 #define evalZscore 2
 
 const string outAddress = "snake_conv.txt";
