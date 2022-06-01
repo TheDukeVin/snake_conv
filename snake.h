@@ -38,7 +38,7 @@ using namespace std;
 #define queueSize 120000
 
 #define numGames 1500
-#define numPaths 200
+#define numPaths 800
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
 #define numEvalGames 100
