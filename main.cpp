@@ -34,8 +34,8 @@ void run_trial(int size){
 
 
 void standardSetup(Agent& net){
-    net.initInput(6, 6, 6, 3, 3);
-    net.addConvLayer(9, 6, 6, 3, 3);
+    net.initInput(6, 6, 6, 5, 5);
+    net.addConvLayer(9, 6, 6, 5, 5);
     net.addPoolLayer(9, 3, 3);
     net.addDenseLayer(60);
     net.addDenseLayer(1);
@@ -90,18 +90,18 @@ void trainCycle(){
         cout<<score<<' ';
         
         if(score >= 10){
-            dq.learnRate = min(dq.learnRate,0.002);
+            dq.learnRate = min(dq.learnRate,0.0015);
         }
         if(score >= 20){
-            dq.learnRate = min(dq.learnRate,0.0005);
+            dq.learnRate = min(dq.learnRate,0.0003);
         }
         if(score >= 30){
-            dq.learnRate = min(dq.learnRate,0.00025);
+            dq.learnRate = min(dq.learnRate,0.00015);
         }
         
         sum += score;
         if(i>0 && i%evalPeriod == 0){
-            cout<<"\nAVERAGE: "<<(sum / evalPeriod)<<" in iteration "<<i<<'\n';
+            cout<<"\nAVERAGE: "<<(sum / evalPeriod)<<" in iteration "<<i<<" TIMESTAMP: "<<(time(NULL) - start_time)<<'\n';
             sum = 0;
         }
         if(i % storePeriod == 0){
@@ -166,13 +166,13 @@ int main()
     
     //testNet();
     
-    //trainCycle();
+    trainCycle();
     
     //evaluate();
     
     //manual_game();
     
-    exportGames();
+    //exportGames();
     
     return 0;
     

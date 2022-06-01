@@ -164,10 +164,15 @@ void Trainer::exportGame(){
                 index++;
             }
         }
-        cout<<chosenAction<<',';
         currRoot = outcomes[currRoot][chosenAction];
         s++;
         roots[s] = currRoot;
+        if(states[currRoot].isEndState()){
+            cout<<chosenAction<<'\n';
+        }
+        else{
+            cout<<chosenAction<<',';
+        }
     }
 }
 

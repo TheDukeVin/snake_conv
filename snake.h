@@ -31,14 +31,14 @@ using namespace std;
 //training deatils
 
 #define maxNorm 100
-#define batchSize 2000
+#define batchSize 3000
 
 #define scoreNorm 5
 #define numBatches 1
-#define queueSize 40000
+#define queueSize 80000
 
 #define numGames 1500
-#define numPaths 800
+#define numPaths 400
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
 #define numEvalGames 100
