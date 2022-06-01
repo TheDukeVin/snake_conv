@@ -35,10 +35,10 @@ using namespace std;
 
 #define scoreNorm 5
 #define numBatches 1
-#define queueSize 80000
+#define queueSize 120000
 
 #define numGames 1500
-#define numPaths 800
+#define numPaths 200
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
 #define numEvalGames 100

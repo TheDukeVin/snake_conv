@@ -166,9 +166,9 @@ int main()
     
     //testNet();
     
-    //trainCycle();
+    trainCycle();
     
-    evaluate();
+    //evaluate();
     
     //manual_game();
     
