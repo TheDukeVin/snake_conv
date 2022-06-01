@@ -127,6 +127,12 @@ void evaluate(){
     }
 }
 
+void exportGames(){
+    standardSetup(t.a);
+    t.a.readNet("snakeConv.in");
+    t.exportGame();
+}
+
 void manual_game(){
     Environment env, hold;
     env.initialize();
@@ -162,9 +168,11 @@ int main()
     
     //trainCycle();
     
-    evaluate();
+    //evaluate();
     
     //manual_game();
+    
+    exportGames();
     
     return 0;
     

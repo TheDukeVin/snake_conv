@@ -136,6 +136,42 @@ void Trainer::printGame(){
     }
 }
 
+void Trainer::exportGame(){
+    states[0].initialize();
+    cout<<(states[0].applex * boardy + states[0].appley)<<',';
+    initializeNode(0);
+    currRoot = 0;
+    roots[0] = 0;
+    index = 1;
+    
+    int s = 0;
+    int chosenAction;
+    int i;
+    while(!states[currRoot].isEndState()){
+        if(states[currRoot].actionType == 0){
+            for(i=0; i<numPaths; i++){
+                expandPath();
+            }
+            computeActionProbs();
+            chosenAction = optActionProbs();
+        }
+        if(states[currRoot].actionType == 1){
+            chosenAction = getRandomChanceAction(&states[currRoot]);
+            if(outcomes[currRoot][chosenAction] == -1){
+                outcomes[currRoot][chosenAction] = index;
+                states[index].setAction(&states[currRoot], chosenAction);
+                initializeNode(index);
+                index++;
+            }
+        }
+        cout<<chosenAction<<',';
+        currRoot = outcomes[currRoot][chosenAction];
+        s++;
+        roots[s] = currRoot;
+    }
+}
+
+
 double Trainer::evaluate(){
     int endState;
     double scoreSum = 0;

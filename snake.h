@@ -303,6 +303,7 @@ public:
     double trainTree();
     int evalGame();// return index of the final state in states.
     void printGame();
+    void exportGame();
     double evaluate();
     
     int path[maxStates];
