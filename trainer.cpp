@@ -185,6 +185,7 @@ double Trainer::evaluate(){
     int numCompletes = 0;
     for(int i=0; i<numEvalGames; i++){
         endState = evalGame();
+        cout<<states[endState].getScore()<<' ';
         scoreSum += states[endState].getScore();
         sizeSum += states[endState].snakeSize;
         scoreSquareSum += squ(states[endState].getScore());
