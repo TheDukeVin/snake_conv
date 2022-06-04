@@ -33,12 +33,12 @@ using namespace std;
 #define maxNorm 100
 #define batchSize 3000
 
-#define scoreNorm 5
+#define scoreNorm 10
 #define numBatches 1
 #define queueSize 120000
 
-#define numGames 1500
-#define numPaths 800
+#define numGames 100
+#define numPaths 200
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
 #define numEvalGames 100
@@ -177,16 +177,47 @@ public:
     }
 };
 
+// Output layer including value and policy
+
+class OutputLayer : public Layer{
+public:
+    int inputSize, outputSize;
+    double* expected;
+    double* output;
+    
+    OutputLayer(int inSize, int outSize, double* _output, double* _expected);
+    
+    double unit(double x){
+        return 1 / (1 + exp(-x));
+    }
+    
+    double dinvunit(double x){
+        return x * (1 - x);
+    }
+    
+    virtual void pass(double* inputs, double* outputs);
+    virtual void backProp(double* inputs, double* Dinputs, double* Doutputs);
+    virtual void accumulateGradient(double* inputs, double* Doutputs);
+    
+    virtual ~OutputLayer(){
+        delete[] params;
+        delete[] Dparams;
+    }
+};
+
 class Agent{
 public:
     networkInput* input;
     unsigned long numLayers;
     unsigned maxNodes = 0;
+    
     Layer** layers; // keep an array of pointers, since derived classes need to be accessed by reference.
+    
     double** activation;
     double** Dbias;
-    double output;
-    double expected;
+    
+    double* output;
+    double* expected;
     
     // For file I/O
     ifstream netIn;
@@ -196,6 +227,7 @@ public:
     void addConvLayer(int depth, int height, int width, int convHeight, int convWidth);
     void addPoolLayer(int depth, int height, int width);
     void addDenseLayer(int numNodes);
+    void addOutputLayer(int numNodes);
     void randomize(double startingParameterRange);
     
     // For network usage and training
@@ -219,6 +251,17 @@ private:
 const int numActions[2] = {numAgentActions, numChanceActions};
 
 const int dir[4][2] = {{0,1}, {1,0}, {0,-1}, {-1,0}};
+
+const int symDir[8][2] = {
+    { 1,0},
+    { 1,3},
+    { 1,2},
+    { 1,1},
+    {-1,1},
+    {-1,2},
+    {-1,3},
+    {-1,0}
+};
 
 class Environment{
 private:
@@ -255,6 +298,7 @@ class Data{
 public:
     Environment e;
     double expectedValue;
+    double policy[numAgentActions];
     
     Data(Environment* givenEnv, double givenExpected);
     void trainAgent(Agent* a);
@@ -262,7 +306,7 @@ public:
 
 class DataQueue{
 public:
-    Data* queue[queueSize];
+    Data* queue[queueSize]{};
     int index;
     double learnRate, momentum;
     

@@ -317,6 +317,17 @@ void Agent::addDenseLayer(int numNodes){
     maxNodes = max(maxNodes, numNodes);
 }
 
+void Agent::addOutputLayer(int numNodes){
+    expected = new double[numNodes];
+    output = new double[numNodes];
+    layerHold.push_back(new OutputLayer(prevDepth * prevHeight * prevWidth, numNodes, output, expected));
+    prevDepth = numNodes;
+    prevHeight = 1;
+    prevWidth = 1;
+    maxNodes = max(maxNodes, numNodes);
+    quickSetup();
+}
+
 void Agent::randomize(double startingParameterRange){
     for(int l=0; l<numLayers; l++){
         layers[l]->randomize(startingParameterRange);
@@ -324,11 +335,11 @@ void Agent::randomize(double startingParameterRange){
 }
 
 void Agent::pass(){
-    layers[0]->pass(NULL, activation[1]);
-    for(int l=1; l<numLayers; l++){
-        layers[l]->pass(activation[l], activation[l+1]);
+    layers[0]->pass(NULL, activation[0]);
+    for(int l=1; l<numLayers - 1; l++){
+        layers[l]->pass(activation[l-1], activation[l]);
     }
-    output = activation[numLayers][0];
+    layers[numLayers-1]->pass(activation[numLayers-2], output);
 }
 
 void Agent::resetGradient(){
@@ -339,10 +350,9 @@ void Agent::resetGradient(){
 
 void Agent::backProp(){
     pass();
-    Dbias[numLayers-1][0] = 2 * (activation[numLayers][0] - expected) * dinvnonlinear(activation[numLayers][0]);
     for(int l=numLayers-1; l>0; l--){
-        layers[l]->accumulateGradient(activation[l], Dbias[l]);
-        layers[l]->backProp(activation[l], Dbias[l-1], Dbias[l]);
+        layers[l]->accumulateGradient(activation[l-1], Dbias[l]);
+        layers[l]->backProp(activation[l-1], Dbias[l-1], Dbias[l]);
     }
     layers[0]->accumulateGradient(NULL, Dbias[0]);
 }
@@ -375,18 +385,19 @@ void Agent::quickSetup(){
     for(int i=0; i<numLayers; i++){
         layers[i] = layerHold[i];
     }
-    activation = new double*[numLayers + 1];
+    
+    activation = new double*[numLayers - 1];
     Dbias = new double*[numLayers];
-    for(int l=0; l<=numLayers; l++){
+    for(int l=0; l<numLayers - 1; l++){
         activation[l] = new double[maxNodes];
     }
     for(int l=0; l<numLayers; l++){
         Dbias[l] = new double[maxNodes];
     }
+    
     for(int l=0; l<numLayers; l++){
         layers[l]->netIn = &netIn;
         layers[l]->netOut = &netOut;
     }
-    randomize(0.3);
     resetGradient();
 }

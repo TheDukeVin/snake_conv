@@ -169,16 +169,6 @@ void Environment::inputSymmetric(networkInput* a, int t){
         {{ 0,-1, m},{-1, 0, m}},
         {{-1, 0, m},{ 0, 1, 0}}
     };
-    int symDir[8][2] = {
-        { 1,0},
-        { 1,3},
-        { 1,2},
-        { 1,1},
-        {-1,1},
-        {-1,2},
-        {-1,3},
-        {-1,0}
-    };
     a->param[0] = (double) timer / maxTime;
     a->param[1] = score / scoreNorm;
     a->param[2] = actionType;

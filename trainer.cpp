@@ -53,10 +53,48 @@ double Trainer::trainTree(){
         s++;
         roots[s] = currRoot;
     }
-    int numStates = s+1;
+    int numStates = s;
     double finalScore = states[currRoot].getScore();
     for(i=0; i<numStates; i++){
-        dq->enqueue(new Data(&states[roots[i]], finalScore));
+        Data* d = new Data(&states[roots[i]], finalScore);
+        if(states[roots[i]].actionType == 0){
+            int sum = 0;
+            for(int j=0; j<numAgentActions; j++){
+                sum += squ(size[outcomes[roots[i]][j]]);
+            }
+            assert(sum > 0);
+            for(int j=0; j<numAgentActions; j++){
+                int curr = size[outcomes[roots[i]][j]];
+                if(curr == 0){
+                    d->policy[j] = 0.5;
+                }
+                else{
+                    d->policy[j] = (double) squ(curr) / sum;
+                }
+                //cout<<d->policy[j]<<'\n';
+            }
+        }
+        else{
+            for(int j=0; j<numAgentActions; j++){
+                d->policy[j] = 0.5;
+            }
+        }
+        dq->enqueue(d);
+        d->e.log();
+        cout<<d->expectedValue<<'\n';
+        for(int j=0; j<numAgentActions; j++){
+            cout<<d->policy[j]<<' ';
+        }
+        cout<<"\n\n";
+        
+        d->e.inputSymmetric(a.input, 0);
+        a.pass();
+        cout<<"Network policy: ";
+        for(int j=0; j<numAgentActions; j++){
+            cout<<a.output[j+1]<<' ';
+        }
+        cout<<"\n\n";
+        
     }
     return finalScore;
 }
@@ -118,6 +156,15 @@ void Trainer::printGame(){
                 fout<<actionProbs[i]<<' ';
             }
             fout<<"\n\n";
+            
+            states[currRoot].inputSymmetric(a.input, 0);
+            a.pass();
+            fout<<"Network policy: ";
+            for(i=0; i<numAgentActions; i++){
+                fout<<a.output[i+1]<<' ';
+            }
+            fout<<"\n\n";
+            
             fout.close();
             chosenAction = optActionProbs();
         }
@@ -256,7 +303,7 @@ void Trainer::expandPath(){
         //states[index].print();
         states[index].inputSymmetric(a.input, rand()%8);
         a.pass();
-        newVal = a.output;
+        newVal = a.output[0];
         assert(abs(newVal) < 1000);
         path[count] = index;
         index++;

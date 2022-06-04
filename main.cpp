@@ -37,9 +37,17 @@ void standardSetup(Agent& net){
     net.initInput(6, 6, 6, 5, 5);
     net.addConvLayer(9, 6, 6, 5, 5);
     net.addPoolLayer(9, 3, 3);
-    net.addDenseLayer(60);
-    net.addDenseLayer(1);
-    net.quickSetup();
+    net.addDenseLayer(80);
+    net.addOutputLayer(5);
+    net.randomize(0.2);
+}
+
+double error(double* A, double* B, int size){
+    double sum = 0;
+    for(int i=0; i<size; i++){
+        sum += squ(A[i] - B[i]);
+    }
+    return sum;
 }
 
 void testNet(){
@@ -57,20 +65,22 @@ void testNet(){
         }
         net.input->param[i] = (double) rand() / RAND_MAX;
     }
-    net.expected = (double) rand() / RAND_MAX;
+    for(int i=0; i<5; i++){
+        net.expected[i] = (double) rand() / RAND_MAX;
+    }
     
     net.pass();
-    double base = squ(net.output - net.expected);
+    double base = error(net.expected, net.output, 5);
     net.backProp();
-    double ep = 0.000001;
+    double ep = 0.00001;
     
     for(int l=0; l<net.numLayers; l++){
         for(int i=0; i<net.layers[l]->numParams; i++){
             net.layers[l]->params[i] += ep;
             net.pass();
             net.layers[l]->params[i] -= ep;
-            double new_error = squ(net.output - net.expected);
-            //cout<< ((new_error - base) / ep) << ' ' << net.layers[l]->Dparams[i]<<'\n';
+            double new_error = error(net.expected, net.output, 5);
+            cout<<l<<' '<< ((new_error - base) / ep) << ' ' << net.layers[l]->Dparams[i]<<'\n';
             assert( abs((new_error - base) / ep - net.layers[l]->Dparams[i]) < 0.001);
         }
     }
@@ -87,16 +97,17 @@ void trainCycle(){
     double sum = 0;
     for(int i=0; i<=numGames; i++){
         double score = t.trainTree();
-        cout<<score<<' ';
+        //cout<<score<<' ';
+        cout<<"SCORE: "<<score<<'\n';
         
         if(score >= 10){
-            dq.learnRate = min(dq.learnRate,0.0015);
+            dq.learnRate = min(dq.learnRate,0.001);
         }
         if(score >= 20){
-            dq.learnRate = min(dq.learnRate,0.0003);
+            dq.learnRate = min(dq.learnRate,0.0002);
         }
         if(score >= 30){
-            dq.learnRate = min(dq.learnRate,0.00015);
+            dq.learnRate = min(dq.learnRate,0.0001);
         }
         
         sum += score;
@@ -107,16 +118,29 @@ void trainCycle(){
         if(i % storePeriod == 0){
             t.a.save("nets/Game" + to_string(i) + ".out");
         }
-        
+        //cout<<"BEFORE TRAIN\n";
         dq.trainAgent(&t.a);
+        
+        
+        double paramSum = 0;
+        for(int l=0; l<t.a.numLayers; l++){
+            for(int j=0; j<t.a.layers[l]->numParams; j++){
+                paramSum += squ(t.a.layers[l]->params[j]);
+            }
+        }
+        cout<<"PARAMS: "<<paramSum<<'\n';
+        
+        
+        //cout<<"AFTER TRAIN\n";
     }
 }
 
 void evaluate(){
     standardSetup(t.a);
     t.a.readNet("snakeConv.in");
-    t.evaluate();
-    
+    t.printGame();
+    //t.evaluate();
+    /*
     ofstream fout4(outAddress);
     fout4.close();
     for(int i=0; i<10; i++){
@@ -124,7 +148,7 @@ void evaluate(){
         fout<<"Printed game "<<i<<'\n';
         fout.close();
         t.printGame();
-    }
+    }*/
 }
 
 void exportGames(){
@@ -166,9 +190,9 @@ int main()
     
     //testNet();
     
-    //trainCycle();
+    trainCycle();
     
-    evaluate();
+    //evaluate();
     
     //manual_game();
     

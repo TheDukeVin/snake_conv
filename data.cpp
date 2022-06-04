@@ -13,8 +13,13 @@ Data::Data(Environment* givenEnv, double givenExpected){
 }
 
 void Data::trainAgent(Agent* a){
-    e.inputSymmetric(a->input, rand()%8);
-    a->expected = expectedValue;
+    int orient = 0;
+    e.inputSymmetric(a->input, orient);
+    a->expected[0] = expectedValue;
+    for(int i=0; i<4; i++){
+        int newDir = (symDir[orient][0]*i + symDir[orient][1] + 4) % 4;
+        a->expected[newDir+1] = policy[i];
+    }
     a->backProp();
 }
 
@@ -23,6 +28,7 @@ DataQueue::DataQueue(){
 }
 
 void DataQueue::enqueue(Data* d){
+    if(queue[index%queueSize]) delete queue[index%queueSize];
     queue[index%queueSize] = d;
     index++;
 }
