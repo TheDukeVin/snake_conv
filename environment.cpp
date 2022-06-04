@@ -89,31 +89,17 @@ bool Environment::validChanceAction(int pos){
 }
 
 void Environment::setAction(Environment* currState, int actionIndex){
+    copyEnv(currState);
     if(currState->actionType == 0){
-        setAgentAction(currState, actionIndex);
+        agentAction(actionIndex);
     }
     if(currState->actionType == 1){
-        setChanceAction(currState, actionIndex);
+        chanceAction(actionIndex);
     }
 }
 
-void Environment::setAgentAction(Environment* currState, int actionIndex){
-    timer = currState->timer + 1;
-    score = currState->score;
-    actionType = 0;
-    snakeSize = currState->snakeSize;
-    headx = currState->headx;
-    heady = currState->heady;
-    tailx = currState->tailx;
-    taily = currState->taily;
-    applex = currState->applex;
-    appley = currState->appley;
-    int i,j;
-    for(i=0; i<boardx; i++){
-        for(j=0; j<boardy; j++){
-            snake[i][j] = currState->snake[i][j];
-        }
-    }
+void Environment::agentAction(int actionIndex){
+    timer++;
     
     int newHeadx = headx + dir[actionIndex][0];
     int newHeady = heady + dir[actionIndex][1];
@@ -134,27 +120,28 @@ void Environment::setAgentAction(Environment* currState, int actionIndex){
         tailx += dir[tailDir][0];
         taily += dir[tailDir][1];
     }
-}
-
-void Environment::setChanceAction(Environment* currState, int actionIndex){
-    timer = currState->timer;
-    score = currState->score;
-    actionType = 0;
-    snakeSize = currState->snakeSize;
-    headx = currState->headx;
-    heady = currState->heady;
-    tailx = currState->tailx;
-    taily = currState->taily;
     
-    applex = actionIndex / boardy;
-    appley = actionIndex % boardy;
-    
-    int i,j;
-    for(i=0; i<boardx; i++){
-        for(j=0; j<boardy; j++){
-           snake[i][j] = currState->snake[i][j];
+    // Unfold path
+    if(actionType == 1) return;
+    if(isEndState()) return; // checks if time limit has been reached.
+    int nextAction = -1;
+    for(int i=0; i<numAgentActions; i++){
+        if(validAction(i)){
+            if(nextAction == -1){
+                nextAction = i;
+            }
+            else{
+                return;
+            }
         }
     }
+    agentAction(nextAction);
+}
+
+void Environment::chanceAction(int actionIndex){
+    applex = actionIndex / boardy;
+    appley = actionIndex % boardy;
+    actionType = 0;
 }
 
 void Environment::inputSymmetric(networkInput* a, int t){
@@ -168,6 +155,16 @@ void Environment::inputSymmetric(networkInput* a, int t){
         {{ 1, 0, 0},{ 0,-1, m}},
         {{ 0,-1, m},{-1, 0, m}},
         {{-1, 0, m},{ 0, 1, 0}}
+    };
+    int symDir[8][2] = {
+        { 1,0},
+        { 1,3},
+        { 1,2},
+        { 1,1},
+        {-1,1},
+        {-1,2},
+        {-1,3},
+        {-1,0}
     };
     a->param[0] = (double) timer / maxTime;
     a->param[1] = score / scoreNorm;
@@ -205,9 +202,8 @@ void Environment::copyEnv(Environment* e){
     taily = e->taily;
     applex = e->applex;
     appley = e->appley;
-    int i,j;
-    for(i=0; i<boardx; i++){
-        for(j=0; j<boardy; j++){
+    for(int i=0; i<boardx; i++){
+        for(int j=0; j<boardy; j++){
             snake[i][j] = e->snake[i][j];
         }
     }

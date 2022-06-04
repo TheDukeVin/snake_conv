@@ -1,0 +1,9 @@
+
+6/3/22
+
+
+After creating a network that achieves 90% win rate on a 6x6 board, I decided to try various changes to improve the win rate. First, I tried training a policy network, but this was more difficult than imagined, and since the action space in Snake is so small, the policy network will not be much help in training the network.
+
+I tried to standardize the learning routine by decreasing the learning rate in inverse proportion to the current maximum score. This proved an effective way to approach altering the learning rate. Through experimentation, and perhaps contrary to intuition, I found that the learning rate should decrease faster than in inverse proportion to the current maximum score.
+
+Now, I'm trying an unfolding technique to both speed up the training process and provide a more effective tree search. This is perhaps the most promising technique so far.
