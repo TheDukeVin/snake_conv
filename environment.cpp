@@ -96,6 +96,22 @@ void Environment::setAction(Environment* currState, int actionIndex){
     if(currState->actionType == 1){
         chanceAction(actionIndex);
     }
+    
+    // Unfold path
+    while(actionType == 0 && !isEndState()){
+        int nextAction = -1;
+        for(int i=0; i<numAgentActions; i++){
+            if(validAction(i)){
+                if(nextAction == -1){
+                    nextAction = i;
+                }
+                else{
+                    return;
+                }
+            }
+        }
+        agentAction(nextAction);
+    }
 }
 
 void Environment::agentAction(int actionIndex){
@@ -120,22 +136,6 @@ void Environment::agentAction(int actionIndex){
         tailx += dir[tailDir][0];
         taily += dir[tailDir][1];
     }
-    
-    // Unfold path
-    if(actionType == 1) return;
-    if(isEndState()) return; // checks if time limit has been reached.
-    int nextAction = -1;
-    for(int i=0; i<numAgentActions; i++){
-        if(validAction(i)){
-            if(nextAction == -1){
-                nextAction = i;
-            }
-            else{
-                return;
-            }
-        }
-    }
-    agentAction(nextAction);
 }
 
 void Environment::chanceAction(int actionIndex){

@@ -20,8 +20,8 @@ using namespace std;
 
 //environment details
 
-#define boardx 6
-#define boardy 6
+#define boardx 10
+#define boardy 10
 #define maxTime 200
 
 #define numAgentActions 4
@@ -33,12 +33,12 @@ using namespace std;
 #define maxNorm 100
 #define batchSize 3000
 
-#define scoreNorm 5
+#define scoreNorm 10
 #define numBatches 1
-#define queueSize 160000
+#define queueSize 800
 
 #define numGames 3000
-#define numPaths 800
+#define numPaths 200
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
 #define numEvalGames 100
@@ -262,6 +262,7 @@ public:
     Environment e;
     double expectedValue;
     
+    Data(){}
     Data(Environment* givenEnv, double givenExpected);
     void trainAgent(Agent* a);
 };
@@ -269,11 +270,12 @@ public:
 class DataQueue{
 public:
     Data* queue[queueSize];
+    int gameLengths[queueSize];
     int index;
     double learnRate, momentum;
     
     DataQueue();
-    void enqueue(Data* d);
+    void enqueue(Data* d, int gameLength);
     void trainAgent(Agent* a);
 };
 
@@ -287,6 +289,8 @@ public:
     
     Agent a;
     double exploitationFactor;
+    
+    string gameLog;
     
     Trainer(Environment* givenStates, DataQueue* givendq){
         states = givenStates;

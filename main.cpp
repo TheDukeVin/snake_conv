@@ -34,12 +34,14 @@ void run_trial(int size){
 
 
 void standardSetup(Agent& net){
-    net.initInput(6, 6, 6, 5, 5);
-    net.addConvLayer(9, 6, 6, 5, 5);
-    net.addPoolLayer(9, 3, 3);
-    net.addDenseLayer(60);
+    net.initInput(6, 10, 10, 5, 5);
+    net.addConvLayer(9, 10, 10, 5, 5);
+    net.addPoolLayer(9, 5, 5);
+    net.addConvLayer(9, 5, 5, 5, 5);
+    net.addDenseLayer(150);
     net.addDenseLayer(1);
     net.quickSetup();
+    net.randomize(0.2);
 }
 
 void testNet(){
@@ -81,21 +83,30 @@ void trainCycle(){
     const int storePeriod = 50;
     
     dq.index = 0;
-    dq.learnRate = 0.03;
+    dq.learnRate = 0.02;
     dq.momentum = 0.9;
     
     t.a.maxValue = 0;
     
     double sum = 0;
     int completions = 0;
+    
+    string gameLog = "gameLog.out";
+    ofstream hold(gameLog);
+    hold.close();
+    t.gameLog = gameLog;
+    
     for(int i=0; i<=numGames; i++){
+        ofstream fout(gameLog, ios::app);
+        fout<<"Game "<<i<<'\n';
+        fout.close();
         double score = t.trainTree();
-        cout<<score<<' ';
-        
+        cout<<i<<'.'<<score<<' ';
+        /*
         if(score >= 40){
-            dq.learnRate = min(dq.learnRate, 0.01);
+            dq.learnRate = min(dq.learnRate, 0.007);
         }
-        
+        */
         t.a.maxValue = max(t.a.maxValue, score);
         
         sum += score;
@@ -120,11 +131,11 @@ void trainCycle(){
 void evaluate(){
     standardSetup(t.a);
     t.a.readNet("snakeConv.in");
-    t.evaluate();
+    //t.evaluate();
     
     ofstream fout4(outAddress);
     fout4.close();
-    for(int i=0; i<10; i++){
+    for(int i=0; i<1; i++){
         ofstream fout(outAddress, ios::app);
         fout<<"Printed game "<<i<<'\n';
         fout.close();
@@ -171,9 +182,9 @@ int main()
     
     //testNet();
     
-    //trainCycle();
+    trainCycle();
     
-    evaluate();
+    //evaluate();
     
     //manual_game();
     

@@ -1,9 +1,15 @@
 
 6/3/22
 
-
 After creating a network that achieves 90% win rate on a 6x6 board, I decided to try various changes to improve the win rate. First, I tried training a policy network, but this was more difficult than imagined, and since the action space in Snake is so small, the policy network will not be much help in training the network.
 
 I tried to standardize the learning routine by decreasing the learning rate in inverse proportion to the current maximum score. This proved an effective way to approach altering the learning rate. Through experimentation, and perhaps contrary to intuition, I found that the learning rate should decrease faster than in inverse proportion to the current maximum score.
 
 Now, I'm trying an unfolding technique to both speed up the training process and provide a more effective tree search. This is perhaps the most promising technique so far.
+
+
+6/4/22
+
+After a perfect run on my 6x6 snake, I decided to expand to 10x10 snake. This posed many challenges. My first attempt network was to 6x10x10 (5x5) 9x10x10 (5x5) 9x5x5 -> 150 -> 1. This network does not work very effectively. Perhaps it is my function for sampling actions that is off. Or perhaps it is that my network is not large enough. I'll try to diagnose the problem first and then go from there.
+
+After printing a game with action probabilities, it seems that the action sampling is not the biggest concern. The network design may be at the most fault here.

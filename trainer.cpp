@@ -24,6 +24,8 @@ void Trainer::initializeNode(int currNode){
 
 double Trainer::trainTree(){
     states[0].initialize();
+    ofstream fout(gameLog, ios::app);
+    fout<<(states[0].applex * boardy + states[0].appley)<<',';
     initializeNode(0);
     currRoot = 0;
     roots[0] = 0;
@@ -50,14 +52,24 @@ double Trainer::trainTree(){
             }
         }
         currRoot = outcomes[currRoot][chosenAction];
+        if(states[currRoot].isEndState()){
+            fout<<chosenAction;
+        }
+        else{
+            fout<<chosenAction<<',';
+        }
         s++;
         roots[s] = currRoot;
     }
-    int numStates = s+1;
+    fout<<'\n';
+    fout.close();
+    int numStates = s;
+    Data* game = new Data[numStates];
     double finalScore = states[currRoot].getScore();
     for(i=0; i<numStates; i++){
-        dq->enqueue(new Data(&states[roots[i]], finalScore));
+        game[i] = Data(&states[roots[i]], finalScore);
     }
+    dq->enqueue(game, numStates);
     return finalScore;
 }
 
@@ -183,6 +195,7 @@ double Trainer::evaluate(){
     double sizeSum = 0;
     double scoreSquareSum = 0;
     int numCompletes = 0;
+    int timeSum = 0;
     for(int i=0; i<numEvalGames; i++){
         endState = evalGame();
         cout<<states[endState].getScore()<<' ';
@@ -191,21 +204,22 @@ double Trainer::evaluate(){
         scoreSquareSum += squ(states[endState].getScore());
         if(states[endState].snakeSize == boardx * boardy){
             numCompletes++;
+            timeSum += states[endState].timer;
         }
     }
     double averageScore = scoreSum / numEvalGames;
     double variance = scoreSquareSum / numEvalGames - squ(averageScore);
     double SE = sqrt(variance / numEvalGames) * evalZscore;
-    cout<<"Average snake size: "<<(sizeSum/numEvalGames)<<'\n';
+    cout<<"\nAverage snake size: "<<(sizeSum/numEvalGames)<<'\n';
     cout<<"Average score: "<<averageScore<<'\n';
     cout<<"Confidence interval: (" << (averageScore - SE) << ", " << (averageScore + SE) << ")\n";
     cout<<"Proportion of completions: "<<((double) numCompletes / numEvalGames)<<'\n';
+    cout<<"Average time to completion: "<<((double) timeSum / numCompletes)<<'\n';
     cout<<'\n';
     return averageScore;
 }
 
 void Trainer::expandPath(){
-    //cout<<"New path at "<<currRoot<<'\n';
     int currNode = currRoot;
     int nextNode,nextAction;
     int count = 0;
@@ -214,17 +228,13 @@ void Trainer::expandPath(){
     double maxVal,candVal;
     int i;
     while(currNode != -1 && !states[currNode].isEndState()){
-        //fout<<"Checking state:\n";
-        //states[currNode].print();
         path[count] = currNode;
         count++;
         maxVal = -1000000;
         currType = states[currNode].actionType;
-        //fout<<"Checking actions:\n";
         for(i=0; i<numActions[currType]; i++){
             nextNode = outcomes[currNode][i];
             if(nextNode == -2){
-                //fout<<"No ";
                 continue;
             }
             if(nextNode == -1){
@@ -238,13 +248,11 @@ void Trainer::expandPath(){
                     candVal = (double)rand() / RAND_MAX - size[nextNode];
                 }
             }
-            //fout<<candVal<<' ';
             if(candVal > maxVal){
                 maxVal = candVal;
                 maxIndex = i;
             }
         }
-        //fout<<"Best Action: "<<maxIndex<<"\n\n";
         nextAction = maxIndex;
         currNode = outcomes[currNode][maxIndex];
     }
@@ -253,8 +261,6 @@ void Trainer::expandPath(){
         outcomes[path[count-1]][nextAction] = index;
         states[index].setAction(&states[path[count-1]], nextAction);
         initializeNode(index);
-        //fout<<"New state:\n";
-        //states[index].print();
         states[index].inputSymmetric(a.input, rand()%8);
         a.pass();
         newVal = a.output;
@@ -282,7 +288,6 @@ void Trainer::expandPath(){
         path[count] = currNode;
         count++;
     }
-    //fout<<"Evaluated at "<<newVal<<'\n';
     for(i=0; i<count; i++){
         size[path[i]]++;
         sumScore[path[i]] += newVal;

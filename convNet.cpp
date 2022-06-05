@@ -70,10 +70,11 @@ void Layer::updateParameters(double mult, double momentum){
         sum += squ(params[i]);
     }
     //cout<<"Param sum: "<<sum<<'\n';
+    /*
     if(sum <= maxNorm) return;
     for(int i=0; i<numParams; i++){
         params[i] *= sqrt(maxNorm / sum);
-    }
+    }*/
 }
 
 void Layer::save(){
@@ -387,6 +388,5 @@ void Agent::quickSetup(){
         layers[l]->netIn = &netIn;
         layers[l]->netOut = &netOut;
     }
-    randomize(0.3);
     resetGradient();
 }
