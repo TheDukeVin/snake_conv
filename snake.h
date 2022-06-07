@@ -38,7 +38,7 @@ using namespace std;
 #define queueSize 1000
 
 #define numGames 4000
-#define numPaths 400
+#define numPaths 10000
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
 #define numEvalGames 100
@@ -243,6 +243,7 @@ public:
     bool validAction(int actionIndex); // returns whether the action is valid.
     bool validAgentAction(int d);
     bool validChanceAction(int pos);
+    void makeAction(int actionIndex);
     void setAction(Environment* currState, int actionIndex);
     void inputSymmetric(networkInput* a, int t);
     void copyEnv(Environment* e);
@@ -280,10 +281,8 @@ public:
 
 // Trainer
 
-
 class Trainer{
 public:
-    Environment* states;
     DataQueue* dq;
     
     bool hard_code = true;
@@ -293,24 +292,28 @@ public:
     
     string gameLog;
     
-    Trainer(Environment* givenStates, DataQueue* givendq){
-        states = givenStates;
+    Trainer(DataQueue* givendq){
         dq = givendq;
         exploitationFactor = 1;
+        for(int i=0; i<maxStates; i++){
+            outcomes[i] = NULL;
+        }
     }
     
     //Storage for the tree:
-    int outcomes[maxStates][maxNumActions];
-    int size[maxStates];
+    int* outcomes[maxStates];
+    int subtreeSize[maxStates];
     double sumScore[maxStates];
-    int index;
+    Environment roots[maxTime*2];
     
-    //For executing a training iteration:
-    int roots[maxStates];
-    int currRoot;
+    // Implementing the tree search
+    int index;
+    int rootIndex, rootState;
+    
+    // For executing a training iteration:
     double actionProbs[numAgentActions];
     
-    void initializeNode(int currNode);
+    void initializeNode(Environment& env, int currNode);
     double trainTree();
     int evalGame();// return index of the final state in states.
     void printGame();

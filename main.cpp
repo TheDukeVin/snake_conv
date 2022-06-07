@@ -7,10 +7,9 @@ Uses MARL framework.
 
 #include "snake.h"
 
-// states and dq are too big to be defined in the Trainer class, so they are defined outside.
-Environment states[maxStates];
+// dq is too big to be defined in the Trainer class, so it is defined outside.
 DataQueue dq;
-Trainer t(states, &dq);
+Trainer t(&dq);
 
 unsigned long start_time;
 
@@ -124,15 +123,15 @@ void trainCycle(){
         if(i % storePeriod == 0){
             t.a.save("nets/Game" + to_string(i) + ".out");
         }
-        
-        dq.trainAgent(&t.a);
+        // Testing deterministic evaluation first:
+        //dq.trainAgent(&t.a);
     }
 }
 
 void evaluate(){
     standardSetup(t.a);
     t.a.readNet("snakeConv.in");
-    //t.evaluate();
+    t.evaluate();
     
     ofstream fout4(outAddress);
     fout4.close();

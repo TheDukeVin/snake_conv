@@ -88,12 +88,11 @@ bool Environment::validChanceAction(int pos){
     return snake[newApplex][newAppley] == -1;
 }
 
-void Environment::setAction(Environment* currState, int actionIndex){
-    copyEnv(currState);
-    if(currState->actionType == 0){
+void Environment::makeAction(int actionIndex){
+    if(actionType == 0){
         agentAction(actionIndex);
     }
-    if(currState->actionType == 1){
+    else{
         chanceAction(actionIndex);
     }
     
@@ -112,6 +111,11 @@ void Environment::setAction(Environment* currState, int actionIndex){
         }
         agentAction(nextAction);
     }
+}
+
+void Environment::setAction(Environment* currState, int actionIndex){
+    copyEnv(currState);
+    makeAction(actionIndex);
 }
 
 void Environment::agentAction(int actionIndex){
