@@ -13,3 +13,11 @@ Now, I'm trying an unfolding technique to both speed up the training process and
 After a perfect run on my 6x6 snake, I decided to expand to 10x10 snake. This posed many challenges. My first attempt network was to 6x10x10 (5x5) 9x10x10 (5x5) 9x5x5 -> 150 -> 1. This network does not work very effectively. Perhaps it is my function for sampling actions that is off. Or perhaps it is that my network is not large enough. I'll try to diagnose the problem first and then go from there.
 
 After printing a game with action probabilities, it seems that the action sampling is not the biggest concern. The network design may be at the most fault here.
+
+
+6/6/22
+
+Notable game on 10x10 board: fastest way to lose
+
+81,3,0,0,1,2,1,2,2,1,2,1,0,60,1,2,3,0,3,2,81,0,3,2,3,3,0,3,2
+

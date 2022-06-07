@@ -261,9 +261,18 @@ void Trainer::expandPath(){
         outcomes[path[count-1]][nextAction] = index;
         states[index].setAction(&states[path[count-1]], nextAction);
         initializeNode(index);
-        states[index].inputSymmetric(a.input, rand()%8);
-        a.pass();
-        newVal = a.output;
+        if(hard_code){
+            newVal = states[index].snakeSize - states[index].actionType;
+            newVal += (maxTime - states[index].timer) * 0.05;
+            newVal -= (abs(states[index].headx - states[index].applex)) * 0.05;
+            newVal -= (abs(states[index].heady - states[index].appley)) * 0.05;
+        }
+        else{
+            states[index].inputSymmetric(a.input, rand()%8);
+            a.pass();
+            newVal = a.output;
+        }
+        
         assert(abs(newVal) < 1000);
         path[count] = index;
         index++;
@@ -317,7 +326,7 @@ void Trainer::computeActionProbs(){
     for(i=0; i<numAgentActions; i++){
         nextIndex = outcomes[currRoot][i];
         if(nextIndex != -2){
-            actionProbs[i] = squ(size[nextIndex]);
+            actionProbs[i] = pow(size[nextIndex], 2); // squ(size[nextIndex]);
         }
         else{
             actionProbs[i] = -1;

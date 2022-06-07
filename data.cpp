@@ -16,6 +16,7 @@ void Data::trainAgent(Agent* a){
     e.inputSymmetric(a->input, rand()%8);
     a->expected = expectedValue;
     a->backProp();
+    assert(abs(a->output) < 1000);
 }
 
 DataQueue::DataQueue(){

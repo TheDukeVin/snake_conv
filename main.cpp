@@ -55,7 +55,7 @@ void testNet(){
     }
     for(int i=0; i<3; i++){
         for(int j=0; j<2; j++){
-            net.input->pos[i][j] = rand() % 6;
+            net.input->pos[i][j] = rand() % boardx;
         }
         net.input->param[i] = (double) rand() / RAND_MAX;
     }
@@ -83,11 +83,9 @@ void trainCycle(){
     const int storePeriod = 50;
     
     dq.index = 0;
-    dq.learnRate = 0.02;
     dq.momentum = 0.9;
     
-    t.a.maxValue = 0;
-    
+    int maxScore = 0;
     double sum = 0;
     int completions = 0;
     
@@ -97,17 +95,20 @@ void trainCycle(){
     t.gameLog = gameLog;
     
     for(int i=0; i<=numGames; i++){
+        if(i >= 300){
+            t.hard_code = false;
+        }
         ofstream fout(gameLog, ios::app);
         fout<<"Game "<<i<<'\n';
         fout.close();
         double score = t.trainTree();
-        cout<<i<<'.'<<score<<' ';
-        /*
-        if(score >= 40){
-            dq.learnRate = min(dq.learnRate, 0.007);
+        cout<<i<<':'<<score<<' ';
+        maxScore = max(maxScore, score);
+        
+        dq.learnRate = 0.002 / (1 + maxScore);
+        if(maxScore >= 100){
+            dq.learnRate = 0.001 / (1 + maxScore);
         }
-        */
-        t.a.maxValue = max(t.a.maxValue, score);
         
         sum += score;
         if(score >= 40){

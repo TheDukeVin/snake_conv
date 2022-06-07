@@ -22,7 +22,7 @@ using namespace std;
 
 #define boardx 10
 #define boardy 10
-#define maxTime 200
+#define maxTime 1000
 
 #define numAgentActions 4
 #define numChanceActions (boardx*boardy)
@@ -31,14 +31,14 @@ using namespace std;
 //training deatils
 
 #define maxNorm 100
-#define batchSize 3000
+#define batchSize 2000
 
 #define scoreNorm 10
 #define numBatches 1
-#define queueSize 800
+#define queueSize 1000
 
-#define numGames 3000
-#define numPaths 200
+#define numGames 4000
+#define numPaths 400
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
 #define numEvalGames 100
@@ -188,7 +188,6 @@ public:
     double** activation;
     double** Dbias;
     
-    int maxValue; // to normalize the output value
     double output;
     double expected;
     
@@ -286,6 +285,8 @@ class Trainer{
 public:
     Environment* states;
     DataQueue* dq;
+    
+    bool hard_code = true;
     
     Agent a;
     double exploitationFactor;
