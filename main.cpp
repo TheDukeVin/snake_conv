@@ -79,12 +79,15 @@ void testNet(){
 
 void trainCycle(){
     standardSetup(t.a);
+    t.a.readNet("snakeConv.in");
     const int storePeriod = 50;
     
     dq.index = 0;
     dq.momentum = 0.9;
     
-    int maxScore = 0;
+    cout<<"Reading games\n";
+    int maxScore = dq.readGames(); // read games from games.in file.
+    cout<<"Finished reading games\n";
     double sum = 0;
     int completions = 0;
     
@@ -94,7 +97,7 @@ void trainCycle(){
     t.gameLog = gameLog;
     
     for(int i=0; i<=numGames; i++){
-        if(i >= 300){
+        if(i >= 0){
             t.hard_code = false;
         }
         ofstream fout(gameLog, ios::app);
@@ -104,9 +107,9 @@ void trainCycle(){
         cout<<i<<':'<<score<<' ';
         maxScore = max(maxScore, score);
         
-        dq.learnRate = 0.002 / (1 + maxScore);
+        dq.learnRate = 0.0007 / (1 + maxScore);
         if(maxScore >= 100){
-            dq.learnRate = 0.001 / (1 + maxScore);
+            dq.learnRate = 0.0005 / (1 + maxScore);
         }
         
         sum += score;
@@ -123,8 +126,8 @@ void trainCycle(){
         if(i % storePeriod == 0){
             t.a.save("nets/Game" + to_string(i) + ".out");
         }
-        // Testing deterministic evaluation first:
-        //dq.trainAgent(&t.a);
+        
+        dq.trainAgent(&t.a);
     }
 }
 

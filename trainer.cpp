@@ -89,7 +89,7 @@ int Trainer::evalGame(){ // return index of the final state in roots = numStates
                 expandPath();
             }
             computeActionProbs();
-            chosenAction = sampleActionProbs();
+            chosenAction = optActionProbs();
         }
         else{
             chosenAction = getRandomChanceAction(&roots[rootState]);
@@ -154,44 +154,42 @@ void Trainer::printGame(){
 }
 
 void Trainer::exportGame(){
-    /*
-    states[0].initialize();
-    cout<<(states[0].applex * boardy + states[0].appley)<<',';
-    initializeNode(0);
-    currRoot = 0;
-    roots[0] = 0;
+    roots[0].initialize();
+    cout<<(roots[0].applex * boardy + roots[0].appley)<<',';
+    rootIndex = 0;
+    initializeNode(roots[0], 0);
     index = 1;
     
-    int s = 0;
     int chosenAction;
-    int i;
-    while(!states[currRoot].isEndState()){
-        if(states[currRoot].actionType == 0){
-            for(i=0; i<numPaths; i++){
+    for(rootState=0; rootState<maxTime*2; rootState++){
+        if(roots[rootState].actionType == 0){
+            for(int j=0; j<numPaths; j++){
                 expandPath();
             }
             computeActionProbs();
             chosenAction = optActionProbs();
         }
-        if(states[currRoot].actionType == 1){
-            chosenAction = getRandomChanceAction(&states[currRoot]);
-            if(outcomes[currRoot][chosenAction] == -1){
-                outcomes[currRoot][chosenAction] = index;
-                states[index].setAction(&states[currRoot], chosenAction);
-                initializeNode(index);
+        else{
+            chosenAction = getRandomChanceAction(&roots[rootState]);
+            if(outcomes[rootIndex][chosenAction] == -1){
+                outcomes[rootIndex][chosenAction] = index;
+                Environment env;
+                env.setAction(&roots[rootState], chosenAction);
+                initializeNode(env, index);
                 index++;
             }
         }
-        currRoot = outcomes[currRoot][chosenAction];
-        s++;
-        roots[s] = currRoot;
-        if(states[currRoot].isEndState()){
-            cout<<chosenAction<<'\n';
+        roots[rootState+1].setAction(&roots[rootState], chosenAction);
+        rootIndex = outcomes[rootIndex][chosenAction];
+        if(roots[rootState+1].isEndState()){
+            cout<<chosenAction;
+            break;
         }
         else{
             cout<<chosenAction<<',';
         }
-    }*/
+    }
+    cout<<'\n';
 }
 
 

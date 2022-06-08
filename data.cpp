@@ -45,3 +45,40 @@ void DataQueue::trainAgent(Agent* a){
         a->updateParameters(learnRate / batchSize, momentum);
     }
 }
+
+int DataQueue::readGames(){
+    string input;
+    ifstream fin("games.in");
+    int maxScore = 0;
+    while(fin >> input){
+        if(input.length() <= 10){
+            continue;
+        }
+        vector<int> actions;
+        int currAction = 0;
+        for(int i=0; i<input.length(); i++){
+            if(input[i] == ','){
+                actions.push_back(currAction);
+                currAction = 0;
+            }
+            else{
+                currAction *= 10;
+                currAction += input[i] - '0';
+            }
+        }
+        int gameLength = actions.size();
+        Data* game = new Data[gameLength];
+        game[0].e.initialize();
+        game[0].e.chanceAction(actions[0]);
+        for(int i=1; i<gameLength; i++){
+            assert(game[i-1].e.validAction(actions[i]));
+            game[i].e.setAction(&game[i-1].e, actions[i]);
+        }
+        for(int i=0; i<gameLength; i++){
+            game[i].expectedValue = game[gameLength - 1].e.getScore();
+        }
+        enqueue(game, gameLength);
+        maxScore = max(maxScore, game[gameLength - 1].e.getScore());
+    }
+    return maxScore;
+}

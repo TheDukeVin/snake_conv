@@ -31,14 +31,15 @@ using namespace std;
 //training deatils
 
 #define maxNorm 100
-#define batchSize 2000
+#define batchSize 3500
 
 #define scoreNorm 10
 #define numBatches 1
 #define queueSize 1000
 
 #define numGames 4000
-#define numPaths 10000
+#define numPaths 400
+
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
 #define numEvalGames 100
@@ -250,7 +251,6 @@ public:
     void print();// optional function for debugging
     void log();// optional function for debugging
     
-private:
     void agentAction(int actionIndex);
     void chanceAction(int actionIndex);
 };
@@ -277,6 +277,7 @@ public:
     DataQueue();
     void enqueue(Data* d, int gameLength);
     void trainAgent(Agent* a);
+    int readGames(); // returns the maximum score out of the games read.
 };
 
 // Trainer
