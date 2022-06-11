@@ -248,7 +248,7 @@ void Trainer::expandPath(){
             }
             else{
                 if(currType == 0){
-                    candVal = sumScore[nextNode] / subtreeSize[nextNode] + 0.5 * log(subtreeSize[currNode]) / sqrt(subtreeSize[nextNode]);
+                    candVal = sumScore[nextNode] / subtreeSize[nextNode] + explorationConstant * log(subtreeSize[currNode]) / sqrt(subtreeSize[nextNode]);
                 }
                 if(currType == 1){
                     candVal = (double)rand() / RAND_MAX - subtreeSize[nextNode];

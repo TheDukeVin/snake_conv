@@ -21,3 +21,7 @@ Notable game on 10x10 board: fastest way to lose
 
 81,3,0,0,1,2,1,2,2,1,2,1,0,60,1,2,3,0,3,2,81,0,3,2,3,3,0,3,2
 
+
+6/10/22
+
+TURN OFF SANITIZER. It practically doubles run time.

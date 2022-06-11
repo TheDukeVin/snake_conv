@@ -51,7 +51,7 @@ int DataQueue::readGames(){
     ifstream fin("games.in");
     int maxScore = 0;
     while(fin >> input){
-        if(input.length() <= 10){
+        if(input.length() <= 20){
             continue;
         }
         vector<int> actions;

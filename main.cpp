@@ -87,7 +87,7 @@ void trainCycle(){
     
     cout<<"Reading games\n";
     int maxScore = dq.readGames(); // read games from games.in file.
-    cout<<"Finished reading games\n";
+    cout<<"Finished reading " << dq.index << " games\n";
     double sum = 0;
     int completions = 0;
     
@@ -101,15 +101,15 @@ void trainCycle(){
             t.hard_code = false;
         }
         ofstream fout(gameLog, ios::app);
-        fout<<"Game "<<i<<'\n';
+        fout<<"Game "<<i<<' '<<time(NULL)<<'\n';
         fout.close();
         double score = t.trainTree();
         cout<<i<<':'<<score<<' ';
         maxScore = max(maxScore, score);
         
-        dq.learnRate = 0.0007 / (1 + maxScore);
+        dq.learnRate = 0.005 / (1 + maxScore);
         if(maxScore >= 100){
-            dq.learnRate = 0.0005 / (1 + maxScore);
+            dq.learnRate = 0.002 / (1 + maxScore);
         }
         
         sum += score;

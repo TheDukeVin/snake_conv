@@ -39,6 +39,7 @@ using namespace std;
 
 #define numGames 4000
 #define numPaths 400
+#define explorationConstant 1
 
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
