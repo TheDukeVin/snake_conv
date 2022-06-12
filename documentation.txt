@@ -25,3 +25,13 @@ Notable game on 10x10 board: fastest way to lose
 6/10/22
 
 TURN OFF SANITIZER. It practically doubles run time.
+
+
+6/11/22
+
+Network I decided:
+(5x5) 6x10x10 (5x5) 9x10x10 (pool) 9x5x5 (5x5) 9x5x5 -> 150 -> 1
+Possible candidate:
+(7x7) 10x8x8 (5x5) 10x8x8 (5x5) 15x8x8 (pool) 15x4x4 -> 200 -> 1
+
+Note: Learning rate is extremely important, and it is best to tune this value for different networks. For the network I decided on going on, 0.002 is too large. I trained the program overnight with learning rate 0.0007 and it worked fairly well, giving an average score of 41. Now I'm trying an even smaller rate of 0.0003.

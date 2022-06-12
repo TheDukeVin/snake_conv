@@ -107,9 +107,9 @@ void trainCycle(){
         cout<<i<<':'<<score<<' ';
         maxScore = max(maxScore, score);
         
-        dq.learnRate = 0.005 / (1 + maxScore);
+        dq.learnRate = 0.0003 / (1 + maxScore);
         if(maxScore >= 100){
-            dq.learnRate = 0.002 / (1 + maxScore);
+            dq.learnRate = 0.00015 / (1 + maxScore);
         }
         
         sum += score;
