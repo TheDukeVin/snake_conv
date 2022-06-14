@@ -33,17 +33,19 @@ void run_trial(int size){
 
 
 void standardSetup(Agent& net){
-    net.initInput(6, 10, 10, 5, 5);
-    net.addConvLayer(9, 10, 10, 5, 5);
-    net.addPoolLayer(9, 5, 5);
-    net.addConvLayer(9, 5, 5, 5, 5);
-    net.addDenseLayer(150);
+    net.initInput(10, 10, 10, 3, 3);
+    net.addConvLayer(10, 10, 10, 3, 3);
+    net.addConvLayer(10, 10, 10, 3, 3);
+    net.addPoolLayer(10, 5, 5);
+    net.addDenseLayer(200);
+    net.addDenseLayer(100);
     net.addDenseLayer(1);
     net.quickSetup();
     net.randomize(0.2);
 }
 
 void testNet(){
+    cout<<"Testing net:\n";
     Agent net;
     standardSetup(net);
     net.randomize(0.3);
@@ -78,6 +80,7 @@ void testNet(){
 }
 
 void trainCycle(){
+    cout<<"Beginning training: "<<time(NULL)<<'\n';
     standardSetup(t.a);
     t.a.readNet("snakeConv.in");
     const int storePeriod = 50;
@@ -88,12 +91,17 @@ void trainCycle(){
     cout<<"Reading games\n";
     int maxScore = dq.readGames(); // read games from games.in file.
     cout<<"Finished reading " << dq.index << " games\n";
+    //int maxScore = 0;
+    
     double sum = 0;
     int completions = 0;
     
     string gameLog = "gameLog.out";
+    string summaryLog = "summary.out";
     ofstream hold(gameLog);
     hold.close();
+    ofstream hold2(summaryLog);
+    hold2.close();
     t.gameLog = gameLog;
     
     for(int i=0; i<=numGames; i++){
@@ -105,11 +113,23 @@ void trainCycle(){
         fout.close();
         double score = t.trainTree();
         cout<<i<<':'<<score<<' ';
+
+        ofstream summaryOut(summaryLog, ios::app);
+        summaryOut<<i<<':'<<score<<' ';
+        summaryOut.close();
+
         maxScore = max(maxScore, score);
         
-        dq.learnRate = 0.0003 / (1 + maxScore);
+        dq.learnRate = 0.001 / (1 + maxScore);
+        if(maxScore >= 10){
+            t.actionTemperature = max(t.actionTemperature, 2);
+        }
+        if(maxScore >= 40){
+            dq.learnRate = 0.0003 / (1 + maxScore);
+            t.actionTemperature = max(t.actionTemperature, 3);
+        }
         if(maxScore >= 100){
-            dq.learnRate = 0.00015 / (1 + maxScore);
+            //dq.learnRate = 0.00015 / (1 + maxScore);
         }
         
         sum += score;

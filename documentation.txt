@@ -35,3 +35,13 @@ Possible candidate:
 (7x7) 10x8x8 (5x5) 10x8x8 (5x5) 15x8x8 (pool) 15x4x4 -> 200 -> 1
 
 Note: Learning rate is extremely important, and it is best to tune this value for different networks. For the network I decided on going on, 0.002 is too large. I trained the program overnight with learning rate 0.0007 and it worked fairly well, giving an average score of 41. Now I'm trying an even smaller rate of 0.0003.
+
+6/12/22
+ALWAYS REMEMBER TO CAFFEINATE.
+
+
+6/13/22
+
+I tried training the candidate network from scratch, but it didn't work. I guess it is just hard to train networks from scratch.
+
+Training it using 100 games played by the deterministic algorithm proved more effective.

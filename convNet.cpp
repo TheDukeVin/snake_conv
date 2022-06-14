@@ -17,6 +17,11 @@ int max(int x, int y){
     return x;
 }
 
+double max(double x, double y){
+    if(x < y) return y;
+    return x;
+}
+
 double randWeight(double startingParameterRange){
     return (((double)rand() / RAND_MAX)*2-1) * startingParameterRange;
 }
@@ -355,19 +360,25 @@ void Agent::updateParameters(double mult, double momentum){
 }
 
 void Agent::save(string fileName){
-    netOut = ofstream(fileName);
+    netOut = new ofstream(fileName);
+    for(int l=0; l<numLayers; l++){
+        layers[l]->netOut = netOut;
+    }
     for(int l=0; l<numLayers; l++){
         layers[l]->save();
     }
-    netOut.close();
+    netOut->close();
 }
 
 void Agent::readNet(string fileName){
-    netIn = ifstream(fileName);
+    netIn = new ifstream(fileName);
+    for(int l=0; l<numLayers; l++){
+        layers[l]->netIn = netIn;
+    }
     for(int l=0; l<numLayers; l++){
         layers[l]->readNet();
     }
-    netIn.close();
+    netIn->close();
 }
 
 void Agent::quickSetup(){
@@ -383,10 +394,6 @@ void Agent::quickSetup(){
     }
     for(int l=0; l<numLayers; l++){
         Dbias[l] = new double[maxNodes];
-    }
-    for(int l=0; l<numLayers; l++){
-        layers[l]->netIn = &netIn;
-        layers[l]->netOut = &netOut;
     }
     resetGradient();
 }

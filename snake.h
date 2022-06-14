@@ -194,8 +194,8 @@ public:
     double expected;
     
     // For file I/O
-    ifstream netIn;
-    ofstream netOut;
+    ifstream* netIn;
+    ofstream* netOut;
     
     void initInput(int depth, int height, int width, int convHeight, int convWidth);
     void addConvLayer(int depth, int height, int width, int convHeight, int convWidth);
@@ -288,6 +288,7 @@ public:
     DataQueue* dq;
     
     bool hard_code = true;
+    double actionTemperature = 1;
     
     Agent a;
     double exploitationFactor;

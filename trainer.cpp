@@ -333,7 +333,7 @@ void Trainer::computeActionProbs(){
     for(i=0; i<numAgentActions; i++){
         nextIndex = outcomes[rootIndex][i];
         if(nextIndex != -2){
-            actionProbs[i] = pow(subtreeSize[nextIndex], 3); // squ(size[nextIndex]);
+            actionProbs[i] = pow(subtreeSize[nextIndex], actionTemperature); // squ(size[nextIndex]);
         }
         else{
             actionProbs[i] = -1;
