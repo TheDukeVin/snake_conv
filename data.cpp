@@ -10,6 +10,9 @@
 Data::Data(Environment* givenEnv, double givenExpected){
     e.copyEnv(givenEnv);
     expectedValue = givenExpected;
+    if(MODE == DETERMINISTIC_MODE){
+        e.getDeterministicFeatures(features);
+    }
 }
 
 void Data::trainAgent(Agent* a){
@@ -79,6 +82,17 @@ int DataQueue::readGames(){
         }
         enqueue(game, gameLength);
         maxScore = max(maxScore, game[gameLength - 1].e.getScore());
+        cout<<game[gameLength - 1].e.getScore()<<',';
     }
+    cout<<"\n\n";
     return maxScore;
+}
+
+void DataQueue::trainLinear(LinearModel* lm){
+    for(int i=0; i<batchSize; i++){
+        int gameIndex = rand() % min(index,queueSize);
+        Data* chosenData = &(queue[gameIndex][rand() % gameLengths[gameIndex]]);
+        lm->backProp(chosenData->features, chosenData->expectedValue);
+    }
+    lm->updateParameters(learnRate / batchSize, momentum);
 }

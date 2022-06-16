@@ -267,18 +267,23 @@ void Trainer::expandPath(){
     if(currNode == -1){
         outcomes[path[count-1]][nextAction] = index;
         initializeNode(env, index);
-        if(hard_code){
-            newVal = env.snakeSize - env.actionType;
-            newVal += (maxTime - env.timer) * 0.05;
-            newVal -= (abs(env.headx - env.applex)) * 0.05;
-            newVal -= (abs(env.heady - env.appley)) * 0.05;
+        if(MODE == DETERMINISTIC_MODE){
+            double features[numFeatures];
+            env.getDeterministicFeatures(features);
+            newVal = lm.pass(features);
         }
-        else{
+        else if(MODE == NETWORK_MODE){
             env.inputSymmetric(a.input, rand()%8);
             a.pass();
             newVal = a.output;
         }
         
+        if(abs(newVal) >= 1000){
+            for(int i=0; i<numFeatures+1; i++){
+                cout<<lm.params[i]<<' ';
+            }
+            cout<<'\n';
+        }
         assert(abs(newVal) < 1000);
         path[count] = index;
         index++;

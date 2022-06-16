@@ -45,3 +45,6 @@ ALWAYS REMEMBER TO CAFFEINATE.
 I tried training the candidate network from scratch, but it didn't work. I guess it is just hard to train networks from scratch.
 
 Training it using 100 games played by the deterministic algorithm proved more effective.
+
+Compiling command:
+g++ main.cpp data.cpp convNet.cpp environment.cpp InputLayerCode.cpp trainer.cpp deterministicFunctions.cpp

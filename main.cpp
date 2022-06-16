@@ -86,7 +86,7 @@ void trainCycle(){
     const int storePeriod = 50;
     
     dq.index = 0;
-    dq.momentum = 0.9;
+    dq.momentum = 0.7;
     
     cout<<"Reading games\n";
     int maxScore = dq.readGames(); // read games from games.in file.
@@ -105,9 +105,6 @@ void trainCycle(){
     t.gameLog = gameLog;
     
     for(int i=0; i<=numGames; i++){
-        if(i >= 0){
-            t.hard_code = false;
-        }
         ofstream fout(gameLog, ios::app);
         fout<<"Game "<<i<<' '<<time(NULL)<<'\n';
         fout.close();
@@ -120,12 +117,12 @@ void trainCycle(){
 
         maxScore = max(maxScore, score);
         
-        dq.learnRate = 0.001 / (1 + maxScore);
+        dq.learnRate = 0.002 / (1 + maxScore);
         if(maxScore >= 10){
             t.actionTemperature = max(t.actionTemperature, 2);
         }
         if(maxScore >= 40){
-            dq.learnRate = 0.0003 / (1 + maxScore);
+            //dq.learnRate = 0.0003 / (1 + maxScore);
             t.actionTemperature = max(t.actionTemperature, 3);
         }
         if(maxScore >= 100){
@@ -198,6 +195,91 @@ void manual_game(){
     cout<<"Final Score: "<<env.getScore()<<'\n';
 }
 
+void runDeterministic(){
+    cout<<"Deterministic: "<<time(NULL)<<'\n';
+    
+    int storePeriod = 50;
+    dq.index = 0;
+    dq.momentum = 0;
+    
+    int maxScore = 0;
+    
+    double sum = 0;
+    int completions = 0;
+    
+    string gameLog = "gameLog.out";
+    string summaryLog = "summary.out";
+    ofstream hold(gameLog);
+    hold.close();
+    ofstream hold2(summaryLog);
+    hold2.close();
+    t.gameLog = gameLog;
+    
+    for(int i=0; i<=numGames; i++){
+        for(int i=0; i<numFeatures+1; i++){
+            cout<<t.lm.params[i]<<'\t';
+        }
+        cout<<'\n';
+        ofstream fout(gameLog, ios::app);
+        fout<<"Game "<<i<<' '<<time(NULL)<<'\n';
+        fout.close();
+        double score = t.trainTree();
+        cout<<i<<':'<<score<<' ';
+
+        ofstream summaryOut(summaryLog, ios::app);
+        summaryOut<<i<<':'<<score<<' ';
+        summaryOut.close();
+
+        maxScore = max(maxScore, score);
+        
+        dq.learnRate = 0.05 / (1 + maxScore);
+        t.actionTemperature = 4;
+        /*
+        if(maxScore >= 10){
+            t.actionTemperature = max(t.actionTemperature, 2);
+        }
+        if(maxScore >= 40){
+            //dq.learnRate = 0.0003 / (1 + maxScore);
+            t.actionTemperature = max(t.actionTemperature, 3);
+        }
+        if(maxScore >= 100){
+            //dq.learnRate = 0.00015 / (1 + maxScore);
+        }*/
+        
+        sum += score;
+        if(score >= boardx*boardy){
+            completions++;
+        }
+        if(i>0 && i%evalPeriod == 0){
+            cout<<"\nAVERAGE: "<<(sum / evalPeriod)<<" in iteration "<<i<<'\n';
+            cout<<"Completions: "<<((double) completions / evalPeriod)<<'\n';
+            cout<<" TIMESTAMP: "<<(time(NULL) - start_time)<<'\n';
+            sum = 0;
+            completions = 0;
+        }
+        if(MODE == DETERMINISTIC_MODE){
+            dq.trainLinear(&t.lm);
+        }
+        else{
+            dq.trainAgent(&t.a);
+        }
+    }
+}
+
+void checkDeterministic(){
+    dq.readGames();
+    for(int i=0; i<dq.gameLengths[0]; i++){
+        dq.queue[0][i].e.log();
+        double features[numFeatures];
+        dq.queue[0][i].e.getDeterministicFeatures(features);
+        for(int j=0; j<numFeatures; j++){
+            cout<<features[j]<<' ';
+        }
+        cout<<'\n';
+        cout<<t.lm.pass(features)<<'\n';
+    }
+}
+
 int main()
 {
     srand((unsigned)time(NULL));
@@ -212,6 +294,10 @@ int main()
     //manual_game();
     
     //exportGames();
+
+    //runDeterministic();
+    
+    //checkDeterministic();
     
     return 0;
     

@@ -12,6 +12,7 @@
 #include <ctime>
 #include <string>
 #include <vector>
+#include <list>
 
 #ifndef snake_h
 #define snake_h
@@ -31,7 +32,7 @@ using namespace std;
 //training deatils
 
 #define maxNorm 100
-#define batchSize 3500
+#define batchSize 7000
 
 #define scoreNorm 10
 #define numBatches 1
@@ -45,6 +46,13 @@ using namespace std;
 #define evalPeriod 100
 #define numEvalGames 100
 #define evalZscore 2
+
+// Deterministic vs Network mode
+
+#define DETERMINISTIC_MODE 0
+#define NETWORK_MODE 1
+#define MODE NETWORK_MODE
+#define numFeatures 8
 
 const string outAddress = "snake_conv.txt";
 
@@ -218,6 +226,51 @@ private:
     vector<Layer*> layerHold;
 };
 
+class LinearModel{
+    public:
+    int numParams;
+    double* params;
+    double* weights;
+    double* bias;
+    double* Dparams;
+    double* Dweights;
+    double* Dbias;
+
+    LinearModel(){
+        numParams = numFeatures + 1;
+        params = new double[numParams];
+        weights = params;
+        bias = params + numFeatures;
+        Dparams = new double[numParams];
+        Dweights = Dparams;
+        Dbias = Dparams + numFeatures;
+
+        // Initial set of weights:
+        for(int i=0; i<numParams; i++){
+            params[i] = 0;
+        }
+        //-0.357594  1.29193 0.0270724       0.15542 0.162815        0.855346        0.0896465       0.00498049      0.877094
+        /*
+        weights[0] = -0.357594;
+        weights[1] = 1.29193;
+        weights[2] = 0.0270724;
+        weights[3] = 0.15542;
+        weights[4] = 0.162815;
+        weights[5] = 0.855346;
+        weights[6] = 0.0896465;
+        weights[7] = 0.00498049;
+        bias[0] = 0.877094;
+        */
+        resetGradient();
+    }
+
+    double pass(double* features);
+
+    void backProp(double* features, double expected);
+
+    void resetGradient();
+    void updateParameters(double mult, double momentum);
+};
 
 // Environment things
 
@@ -252,6 +305,8 @@ public:
     void print();// optional function for debugging
     void log();// optional function for debugging
     
+    void getDeterministicFeatures(double* features);
+    
     void agentAction(int actionIndex);
     void chanceAction(int actionIndex);
 };
@@ -262,6 +317,7 @@ class Data{
 public:
     Environment e;
     double expectedValue;
+    double features[numFeatures];
     
     Data(){}
     Data(Environment* givenEnv, double givenExpected);
@@ -279,6 +335,8 @@ public:
     void enqueue(Data* d, int gameLength);
     void trainAgent(Agent* a);
     int readGames(); // returns the maximum score out of the games read.
+
+    void trainLinear(LinearModel* lm);
 };
 
 // Trainer
@@ -287,10 +345,10 @@ class Trainer{
 public:
     DataQueue* dq;
     
-    bool hard_code = true;
     double actionTemperature = 1;
     
     Agent a;
+    LinearModel lm;
     double exploitationFactor;
     
     string gameLog;
