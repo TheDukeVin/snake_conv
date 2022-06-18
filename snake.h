@@ -47,6 +47,8 @@ using namespace std;
 #define numEvalGames 100
 #define evalZscore 2
 
+#define discountFactor 0.95
+
 // Deterministic vs Network mode
 
 #define DETERMINISTIC_MODE 0
@@ -73,7 +75,7 @@ double dinvnonlinear(double x);
 struct networkInput{
     int snake[boardx][boardy];
     int pos[3][2]; // head, tail, and apple positions
-    double param[3]; // timer, score, and actionType. score and timer are normalized.
+    //double param[3]; // timer, score, and actionType. score and timer are normalized.
 };
 
 class Layer{
@@ -172,11 +174,11 @@ public:
     
     double* snakeWeights; // accessed in cellType, outputl, r, c.
     double* posWeights;
-    double* paramWeights;
+    //double* paramWeights;
     
     double* DsnakeWeights;
     double* DposWeights;
-    double* DparamWeights;
+    //double* DparamWeights;
     
     InputLayer(int outD, int outH, int outW, int convH, int convW, networkInput* input);
     
@@ -294,7 +296,6 @@ public:
     void initialize();
     
     bool isEndState();
-    double getScore();
     bool validAction(int actionIndex); // returns whether the action is valid.
     bool validAgentAction(int d);
     bool validChanceAction(int pos);
@@ -306,9 +307,13 @@ public:
     void log();// optional function for debugging
     
     void getDeterministicFeatures(double* features);
+    double getReward();
     
     void agentAction(int actionIndex);
     void chanceAction(int actionIndex);
+    
+private:
+    double getScore();
 };
 
 // Data things
@@ -379,9 +384,10 @@ public:
     int evalGame();// return index of the final state in states.
     void printGame();
     void exportGame();
-    double evaluate();
+    void evaluate();
     
     int path[maxStates];
+    double rewards[maxStates];
     
     void expandPath();
     void printTree();

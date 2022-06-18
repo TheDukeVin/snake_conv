@@ -48,3 +48,7 @@ Training it using 100 games played by the deterministic algorithm proved more ef
 
 Compiling command:
 g++ main.cpp data.cpp convNet.cpp environment.cpp InputLayerCode.cpp trainer.cpp deterministicFunctions.cpp
+
+
+6/16/22
+SNAIL: System for Neural Autonomous Iterative Learning

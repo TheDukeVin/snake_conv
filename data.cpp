@@ -50,6 +50,7 @@ void DataQueue::trainAgent(Agent* a){
 }
 
 int DataQueue::readGames(){
+    /*
     string input;
     ifstream fin("games.in");
     int maxScore = 0;
@@ -86,6 +87,8 @@ int DataQueue::readGames(){
     }
     cout<<"\n\n";
     return maxScore;
+     */
+    return -1;
 }
 
 void DataQueue::trainLinear(LinearModel* lm){

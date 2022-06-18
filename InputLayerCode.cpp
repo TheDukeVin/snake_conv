@@ -24,28 +24,29 @@ InputLayer::InputLayer(int outD, int outH, int outW, int convH, int convW, netwo
     
     int numSnakeWeights = 4 * outputDepth * convHeight * convWidth;
     int numPosWeights = 3 * outputDepth * convHeight * convWidth;
-    int numParamWeights = 3 * outputDepth;
-    numWeights = numSnakeWeights + numPosWeights + numParamWeights;
+    //int numParamWeights = 3 * outputDepth;
+    numWeights = numSnakeWeights + numPosWeights; // + numParamWeights;
     numBias = outputDepth;
     this->setupParams();
     snakeWeights = weights;
     posWeights = weights + numSnakeWeights;
-    paramWeights = weights + (numSnakeWeights + numPosWeights);
+    //paramWeights = weights + (numSnakeWeights + numPosWeights);
     DsnakeWeights = Dweights;
     DposWeights = Dweights + numSnakeWeights;
-    DparamWeights = Dweights + (numSnakeWeights + numPosWeights);
+    //DparamWeights = Dweights + (numSnakeWeights + numPosWeights);
 }
 
 void InputLayer::pass(double* inputs, double* outputs){
-    double inc;
+    //double inc;
     for(int j=0; j<outputDepth; j++){
+        /*
         inc = 0;
         for(int i=0; i<3; i++){
             inc += env->param[i] * paramWeights[i*outputDepth + j];
-        }
+        }*/
         for(int x=0; x<outputHeight; x++){
             for(int y=0; y<outputWidth; y++){
-                outputs[j*outputHeight*outputWidth + x*outputWidth + y] = bias[j] + inc;
+                outputs[j*outputHeight*outputWidth + x*outputWidth + y] = bias[j]; // + inc;
             }
         }
     }
@@ -94,9 +95,11 @@ void InputLayer::accumulateGradient(double* inputs, double* Doutputs){
                 sum += Doutputs[j*outputHeight*outputWidth + x*outputWidth + y];
             }
         }
+        /*
         for(int i=0; i<3; i++){
             DparamWeights[i*outputDepth + j] += sum * env->param[i];
         }
+         */
         Dbias[j] += sum;
     }
     for(int i=0; i<3; i++){

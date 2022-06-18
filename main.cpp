@@ -58,7 +58,7 @@ void testNet(){
         for(int j=0; j<2; j++){
             net.input->pos[i][j] = rand() % boardx;
         }
-        net.input->param[i] = (double) rand() / RAND_MAX;
+        //net.input->param[i] = (double) rand() / RAND_MAX;
     }
     net.expected = (double) rand() / RAND_MAX;
     
@@ -82,16 +82,17 @@ void testNet(){
 void trainCycle(){
     cout<<"Beginning training: "<<time(NULL)<<'\n';
     standardSetup(t.a);
-    t.a.readNet("snakeConv.in");
+    //cout<<"Reading net:\n";
+    //t.a.readNet("snakeConv.in");
     const int storePeriod = 50;
     
     dq.index = 0;
     dq.momentum = 0.7;
     
-    cout<<"Reading games\n";
-    int maxScore = dq.readGames(); // read games from games.in file.
-    cout<<"Finished reading " << dq.index << " games\n";
-    //int maxScore = 0;
+    //cout<<"Reading games\n";
+    //int maxScore = dq.readGames(); // read games from games.in file.
+    //cout<<"Finished reading " << dq.index << " games\n";
+    int maxScore = 0;
     
     double sum = 0;
     int completions = 0;
@@ -117,7 +118,7 @@ void trainCycle(){
 
         maxScore = max(maxScore, score);
         
-        dq.learnRate = 0.002 / (1 + maxScore);
+        dq.learnRate = 0.2 / (1 + maxScore);
         if(maxScore >= 10){
             t.actionTemperature = max(t.actionTemperature, 2);
         }
@@ -170,6 +171,7 @@ void exportGames(){
 }
 
 void manual_game(){
+    /*
     Environment env, hold;
     env.initialize();
     char dirs[4] = {'d', 's', 'a', 'w'};
@@ -193,6 +195,7 @@ void manual_game(){
         env.copyEnv(&hold);
     }
     cout<<"Final Score: "<<env.getScore()<<'\n';
+     */
 }
 
 void runDeterministic(){

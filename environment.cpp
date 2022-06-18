@@ -170,9 +170,10 @@ void Environment::inputSymmetric(networkInput* a, int t){
         {-1,3},
         {-1,0}
     };
+    /*
     a->param[0] = (double) timer / maxTime;
     a->param[1] = score / scoreNorm;
-    a->param[2] = actionType;
+    a->param[2] = actionType;*/
     a->pos[0][0] = sym[t][0][0]*headx + sym[t][0][1]*heady + sym[t][0][2];
     a->pos[0][1] = sym[t][1][0]*headx + sym[t][1][1]*heady + sym[t][1][2];
     a->pos[1][0] = sym[t][0][0]*tailx + sym[t][0][1]*taily + sym[t][0][2];
@@ -261,4 +262,11 @@ void Environment::log(){ // optional function for debugging
         }
         cout<<'\n';
     }
+}
+
+double Environment::getReward(){
+    if(actionType == 1) return 1;
+    if(timer == maxTime) return 0;
+    if(isEndState()) return -5;
+    return 0;
 }
