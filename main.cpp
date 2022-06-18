@@ -118,7 +118,7 @@ void trainCycle(){
 
         maxScore = max(maxScore, score);
         
-        dq.learnRate = 0.2 / (1 + maxScore);
+        dq.learnRate = 0.02 / (1 + maxScore);
         if(maxScore >= 10){
             t.actionTemperature = max(t.actionTemperature, 2);
         }
