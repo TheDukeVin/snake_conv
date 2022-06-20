@@ -50,7 +50,6 @@ void DataQueue::trainAgent(Agent* a){
 }
 
 int DataQueue::readGames(){
-    /*
     string input;
     ifstream fin("games.in");
     int maxScore = 0;
@@ -78,17 +77,19 @@ int DataQueue::readGames(){
             assert(game[i-1].e.validAction(actions[i]));
             game[i].e.setAction(&game[i-1].e, actions[i]);
         }
-        for(int i=0; i<gameLength; i++){
-            game[i].expectedValue = game[gameLength - 1].e.getScore();
+        double value = game[gameLength-1].getReward();
+        for(int i=gameLength-1; i>=0; i--){
+            game[i].expectedValue = value;
+            if(i > 0){
+                value = game[i-1].e.getReward() + value * pow(discountFactor, game[i].timer - game[i-1].timer);
+            }
         }
         enqueue(game, gameLength);
-        maxScore = max(maxScore, game[gameLength - 1].e.getScore());
-        cout<<game[gameLength - 1].e.getScore()<<',';
+        //maxScore = max(maxScore, game[gameLength - 1].e.getScore());
+        cout<<game[gameLength - 1].e.snakeSize<<',';
     }
     cout<<"\n\n";
     return maxScore;
-     */
-    return -1;
 }
 
 void DataQueue::trainLinear(LinearModel* lm){

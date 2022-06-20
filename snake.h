@@ -32,14 +32,14 @@ using namespace std;
 //training deatils
 
 #define maxNorm 100
-#define batchSize 1000
-#define numBatches 3
+#define batchSize 100
+#define numBatches 30
 
 //#define scoreNorm 10
 #define queueSize 1000
 
 #define numGames 4000
-#define numPaths 400
+#define numPaths 600
 #define explorationConstant 1
 
 #define maxStates (maxTime*2*numPaths)
@@ -47,7 +47,7 @@ using namespace std;
 #define numEvalGames 100
 #define evalZscore 2
 
-#define discountFactor 0.97
+#define discountFactor 0.95
 
 // Deterministic vs Network mode
 
@@ -357,6 +357,7 @@ public:
     double exploitationFactor;
     
     string gameLog;
+    string valueLog;
     
     Trainer(DataQueue* givendq){
         dq = givendq;
@@ -387,7 +388,8 @@ public:
     void evaluate();
     
     int path[maxStates];
-    double rewards[maxStates];
+    double rewards[maxTime*2];
+    int times[maxTime*2];
     
     void expandPath();
     void printTree();

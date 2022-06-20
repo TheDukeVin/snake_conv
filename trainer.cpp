@@ -30,10 +30,15 @@ void Trainer::initializeNode(Environment& env, int currNode){
 double Trainer::trainTree(){
     roots[0].initialize();
     rootIndex = 0;
-    ofstream fout(gameLog, ios::app);
-    fout<<(roots[0].applex * boardy + roots[0].appley)<<',';
+    ofstream gameOut(gameLog, ios::app);
+    ofstream fout(valueLog, ios::app);
+    fout<<"actions = [";
+    fout   <<(roots[0].applex * boardy + roots[0].appley)<<',';
+    gameOut<<(roots[0].applex * boardy + roots[0].appley)<<',';
     initializeNode(roots[0], 0);
     index = 1;
+
+    double values[maxTime*2];
     
     int chosenAction;
     for(rootState=0; rootState<maxTime*2; rootState++){
@@ -54,31 +59,64 @@ double Trainer::trainTree(){
                 index++;
             }
         }
+        values[rootState] = sumScore[rootIndex] / subtreeSize[rootIndex];
         roots[rootState+1].setAction(&roots[rootState], chosenAction);
         rootIndex = outcomes[rootIndex][chosenAction];
         if(roots[rootState+1].isEndState()){
             fout<<chosenAction;
+            gameOut<<chosenAction;
             break;
         }
         else{
             fout<<chosenAction<<',';
+            gameOut<<chosenAction<<',';
         }
     }
-    fout<<'\n';
-    fout.close();
-    int numStates = rootState;
+    fout<<"]\n";
+    gameOut<<"\n";
+    gameOut.close();
+
+    int numStates = rootState + 2;
     Data* game = new Data[numStates];
     /*
     double finalScore = roots[numStates-1].getScore();
     for(int i=0; i<numStates; i++){
         game[i] = Data(&roots[i], finalScore);
     }*/
-    double value = 0;
+    double value = roots[numStates-1].getReward();
     for(int i=numStates-1; i>=0; i--){
-        value = roots[i].getReward() + value * discountFactor;
         game[i] = Data(&roots[i], value);
+        if(i > 0){
+            value = roots[i-1].getReward() + value * pow(discountFactor, roots[i].timer - roots[i-1].timer);
+        }
     }
     dq->enqueue(game, numStates);
+
+    fout<<"values = [";
+    for(int i=0; i<numStates; i++){
+        fout<<game[i].expectedValue;
+        if(i != numStates-1) fout<<',';
+    }
+    fout<<"]\n";
+    fout<<"network_values = [";
+    for(int i=0; i<numStates; i++){
+        game[i].e.inputSymmetric(a.input, rand()%8);
+        a.pass();
+        fout<<a.output;
+        if(i != numStates-1) fout<<',';
+    }
+    fout<<"]\n";
+    fout<<"search_values = [";
+    values[numStates - 1] = game[numStates - 1].getReward();
+    for(int i=0; i<numStates; i++){
+        fout<<values[i];
+        if(i != numStates-1) fout<<',';
+    }
+    fout<<"]\n";
+
+
+    fout.close();
+
     return roots[numStates-1].snakeSize;
 }
 
@@ -239,6 +277,7 @@ void Trainer::expandPath(){
     while(currNode != -1 && !env.isEndState()){
         path[count] = currNode;
         rewards[count] = env.getReward();
+        times[count] = env.timer;
         count++;
         maxVal = -1000000;
         currType = env.actionType;
@@ -322,7 +361,7 @@ void Trainer::expandPath(){
         subtreeSize[path[i]]++;
         sumScore[path[i]] += value;
         if(i > 0){
-            value = rewards[i-1] + value * discountFactor;
+            value = rewards[i-1] + value * pow(discountFactor, times[i] - times[i-1]);
         }
     }
 }

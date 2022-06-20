@@ -35,7 +35,6 @@ void run_trial(int size){
 void standardSetup(Agent& net){
     net.initInput(10, 10, 10, 3, 3);
     net.addConvLayer(10, 10, 10, 3, 3);
-    net.addConvLayer(10, 10, 10, 3, 3);
     net.addPoolLayer(10, 5, 5);
     net.addDenseLayer(200);
     net.addDenseLayer(100);
@@ -88,6 +87,7 @@ void trainCycle(){
     
     dq.index = 0;
     dq.momentum = 0.7;
+    dq.learnRate = 0.01;
     
     //cout<<"Reading games\n";
     //int maxScore = dq.readGames(); // read games from games.in file.
@@ -99,26 +99,33 @@ void trainCycle(){
     
     string gameLog = "gameLog.out";
     string summaryLog = "summary.out";
+    string valueLog = "valueLog.out";
     ofstream hold(gameLog);
     hold.close();
     ofstream hold2(summaryLog);
     hold2.close();
+    ofstream hold3(valueLog);
+    hold3.close();
     t.gameLog = gameLog;
+    t.valueLog = valueLog;
     
     for(int i=0; i<=numGames; i++){
         ofstream fout(gameLog, ios::app);
         fout<<"Game "<<i<<' '<<time(NULL)<<'\n';
         fout.close();
-        double score = t.trainTree();
-        cout<<i<<':'<<score<<' ';
+        ofstream valueOut(valueLog, ios::app);
+        valueOut<<"Game "<<i<<' '<<time(NULL)<<'\n';
+        valueOut.close();
 
+        double score = t.trainTree();
+
+        cout<<i<<':'<<score<<' ';
         ofstream summaryOut(summaryLog, ios::app);
         summaryOut<<i<<':'<<score<<' ';
         summaryOut.close();
 
         maxScore = max(maxScore, score);
         
-        dq.learnRate = 0.02 / (1 + maxScore);
         if(maxScore >= 10){
             t.actionTemperature = max(t.actionTemperature, 2);
         }
@@ -131,7 +138,7 @@ void trainCycle(){
         }
         
         sum += score;
-        if(score >= 40){
+        if(score == boardx*boardy){
             completions++;
         }
         if(i>0 && i%evalPeriod == 0){
@@ -290,7 +297,7 @@ int main()
     
     //testNet();
     
-    trainCycle();
+    //trainCycle();
     
     //evaluate();
     
@@ -301,6 +308,8 @@ int main()
     //runDeterministic();
     
     //checkDeterministic();
+    
+    dq.readGames();
     
     return 0;
     
