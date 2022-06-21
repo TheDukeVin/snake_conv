@@ -81,18 +81,19 @@ void testNet(){
 void trainCycle(){
     cout<<"Beginning training: "<<time(NULL)<<'\n';
     standardSetup(t.a);
-    //cout<<"Reading net:\n";
-    //t.a.readNet("snakeConv.in");
+    cout<<"Reading net:\n";
+    t.a.readNet("snakeConv.in");
     const int storePeriod = 50;
     
     dq.index = 0;
     dq.momentum = 0.7;
     dq.learnRate = 0.01;
+    t.actionTemperature = 3;
     
-    //cout<<"Reading games\n";
-    //int maxScore = dq.readGames(); // read games from games.in file.
-    //cout<<"Finished reading " << dq.index << " games\n";
-    int maxScore = 0;
+    cout<<"Reading games\n";
+    int maxScore = dq.readGames(); // read games from games.in file.
+    cout<<"Finished reading " << dq.index << " games\n";
+    //int maxScore = 0;
     
     double sum = 0;
     int completions = 0;
@@ -127,11 +128,11 @@ void trainCycle(){
         maxScore = max(maxScore, score);
         
         if(maxScore >= 10){
-            t.actionTemperature = max(t.actionTemperature, 2);
+            //t.actionTemperature = max(t.actionTemperature, 2);
         }
         if(maxScore >= 40){
             //dq.learnRate = 0.0003 / (1 + maxScore);
-            t.actionTemperature = max(t.actionTemperature, 3);
+            //t.actionTemperature = max(t.actionTemperature, 3);
         }
         if(maxScore >= 100){
             //dq.learnRate = 0.00015 / (1 + maxScore);
@@ -297,7 +298,7 @@ int main()
     
     //testNet();
     
-    //trainCycle();
+    trainCycle();
     
     //evaluate();
     
@@ -309,7 +310,7 @@ int main()
     
     //checkDeterministic();
     
-    dq.readGames();
+    //dq.readGames();
     
     return 0;
     

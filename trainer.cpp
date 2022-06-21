@@ -107,7 +107,7 @@ double Trainer::trainTree(){
     }
     fout<<"]\n";
     fout<<"search_values = [";
-    values[numStates - 1] = game[numStates - 1].getReward();
+    values[numStates - 1] = game[numStates - 1].e.getReward();
     for(int i=0; i<numStates; i++){
         fout<<values[i];
         if(i != numStates-1) fout<<',';

@@ -23,7 +23,7 @@ using namespace std;
 
 #define boardx 10
 #define boardy 10
-#define maxTime 1000
+#define maxTime 1200
 
 #define numAgentActions 4
 #define numChanceActions (boardx*boardy)
@@ -32,7 +32,7 @@ using namespace std;
 //training deatils
 
 #define maxNorm 100
-#define batchSize 100
+#define batchSize 200
 #define numBatches 30
 
 //#define scoreNorm 10
@@ -47,7 +47,7 @@ using namespace std;
 #define numEvalGames 100
 #define evalZscore 2
 
-#define discountFactor 0.95
+#define discountFactor 0.97
 
 // Deterministic vs Network mode
 

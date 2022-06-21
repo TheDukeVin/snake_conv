@@ -63,3 +63,7 @@ Game 163: first 10x10 snake solve.
 6/20/22
 
 A slight problem with the reward-based learning framework: when I remove single-action states, the states skipped between the states should be counted as extra time steps in the value formula. Should raise discountFactor to the power of the time difference between states.
+
+This bug actually leads to an interesting strategy by the agent. For example, Game 921 Timer 199. Instead of going directly for the apple, the agent opts for moving away and letting the forced moves carry it closer to the apple.
+
+

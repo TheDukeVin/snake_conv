@@ -69,6 +69,7 @@ int DataQueue::readGames(){
                 currAction += input[i] - '0';
             }
         }
+        actions.push_back(currAction);
         int gameLength = actions.size();
         Data* game = new Data[gameLength];
         game[0].e.initialize();
@@ -77,11 +78,11 @@ int DataQueue::readGames(){
             assert(game[i-1].e.validAction(actions[i]));
             game[i].e.setAction(&game[i-1].e, actions[i]);
         }
-        double value = game[gameLength-1].getReward();
+        double value = game[gameLength-1].e.getReward();
         for(int i=gameLength-1; i>=0; i--){
             game[i].expectedValue = value;
             if(i > 0){
-                value = game[i-1].e.getReward() + value * pow(discountFactor, game[i].timer - game[i-1].timer);
+                value = game[i-1].e.getReward() + value * pow(discountFactor, game[i].e.timer - game[i-1].e.timer);
             }
         }
         enqueue(game, gameLength);
