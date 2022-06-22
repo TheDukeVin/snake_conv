@@ -32,8 +32,8 @@ using namespace std;
 //training deatils
 
 #define maxNorm 100
-#define batchSize 200
-#define numBatches 30
+#define batchSize 2000
+#define numBatches 10
 
 //#define scoreNorm 10
 #define queueSize 1000

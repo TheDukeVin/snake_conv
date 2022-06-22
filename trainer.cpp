@@ -59,7 +59,12 @@ double Trainer::trainTree(){
                 index++;
             }
         }
-        values[rootState] = sumScore[rootIndex] / subtreeSize[rootIndex];
+        if(subtreeSize[rootIndex] != 0){
+            values[rootState] = sumScore[rootIndex] / subtreeSize[rootIndex];
+        }
+        else{
+            values[rootState] = 0;
+        }
         roots[rootState+1].setAction(&roots[rootState], chosenAction);
         rootIndex = outcomes[rootIndex][chosenAction];
         if(roots[rootState+1].isEndState()){
@@ -273,6 +278,10 @@ void Trainer::expandPath(){
     int i;
     Environment env;
     env.copyEnv(&roots[rootState]);
+
+    for(int i=0; i<2*maxTime; i++){
+        times[i] = -1;
+    }
     
     while(currNode != -1 && !env.isEndState()){
         path[count] = currNode;
@@ -329,6 +338,7 @@ void Trainer::expandPath(){
         }*/
         assert(abs(newVal) < 1000);
         path[count] = index;
+        times[count] = env.timer;
         index++;
         count++;
         /*
@@ -350,6 +360,7 @@ void Trainer::expandPath(){
         //newVal = env.getScore();
         newVal = env.getReward();
         path[count] = currNode;
+        times[count] = env.timer;
         count++;
     }/*
     for(i=0; i<count; i++){
@@ -360,6 +371,7 @@ void Trainer::expandPath(){
     for(i=count-1; i>=0; i--){
         subtreeSize[path[i]]++;
         sumScore[path[i]] += value;
+        assert(times[i] >= 0);
         if(i > 0){
             value = rewards[i-1] + value * pow(discountFactor, times[i] - times[i-1]);
         }

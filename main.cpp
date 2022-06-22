@@ -87,7 +87,7 @@ void trainCycle(){
     
     dq.index = 0;
     dq.momentum = 0.7;
-    dq.learnRate = 0.01;
+    dq.learnRate = 0.002;
     t.actionTemperature = 3;
     
     cout<<"Reading games\n";

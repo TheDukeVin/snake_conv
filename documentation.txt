@@ -67,3 +67,6 @@ A slight problem with the reward-based learning framework: when I remove single-
 This bug actually leads to an interesting strategy by the agent. For example, Game 921 Timer 199. Instead of going directly for the apple, the agent opts for moving away and letting the forced moves carry it closer to the apple.
 
 
+6/21/22
+
+Analogies: AI declaring war on AI. Humans get in the way of the antimatter bombs. Short-term goals are easier than long-term goals.
