@@ -87,7 +87,7 @@ void trainCycle(){
     
     dq.index = 0;
     dq.momentum = 0.7;
-    dq.learnRate = 0.002;
+    dq.learnRate = 0.001;
     t.actionTemperature = 3;
     
     cout<<"Reading games\n";
@@ -97,6 +97,7 @@ void trainCycle(){
     
     double sum = 0;
     int completions = 0;
+    double completionTime = 0;
     
     string gameLog = "gameLog.out";
     string summaryLog = "summary.out";
@@ -118,7 +119,13 @@ void trainCycle(){
         valueOut<<"Game "<<i<<' '<<time(NULL)<<'\n';
         valueOut.close();
 
-        double score = t.trainTree();
+        double result = t.trainTree();
+        double score = min(result, boardx*boardy);
+        sum += score;
+        if(score == boardx*boardy){
+            completions++;
+            completionTime += result - score;
+        }
 
         cout<<i<<':'<<score<<' ';
         ofstream summaryOut(summaryLog, ios::app);
@@ -138,16 +145,16 @@ void trainCycle(){
             //dq.learnRate = 0.00015 / (1 + maxScore);
         }
         
-        sum += score;
-        if(score == boardx*boardy){
-            completions++;
-        }
         if(i>0 && i%evalPeriod == 0){
             cout<<"\nAVERAGE: "<<(sum / evalPeriod)<<" in iteration "<<i<<'\n';
             cout<<"Completions: "<<((double) completions / evalPeriod)<<'\n';
+            if(completions > 0){
+                cout<<"Average completion time: "<<(completionTime / completions)<<'\n';
+            }
             cout<<" TIMESTAMP: "<<(time(NULL) - start_time)<<'\n';
             sum = 0;
             completions = 0;
+            completionTime = 0;
         }
         if(i % storePeriod == 0){
             t.a.save("nets/Game" + to_string(i) + ".out");

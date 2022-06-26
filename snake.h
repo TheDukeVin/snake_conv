@@ -33,7 +33,7 @@ using namespace std;
 
 #define maxNorm 100
 #define batchSize 2000
-#define numBatches 10
+#define numBatches 2
 
 //#define scoreNorm 10
 #define queueSize 1000
@@ -61,6 +61,8 @@ const string outAddress = "snake_conv.txt";
 double squ(double x);
 
 int max(int x, int y);
+
+double min(double x, double y);
 
 // For the network
 double randWeight(double startingParameterRange);

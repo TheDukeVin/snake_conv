@@ -121,8 +121,12 @@ double Trainer::trainTree(){
 
 
     fout.close();
-
-    return roots[numStates-1].snakeSize;
+    if(roots[numStates-1].snakeSize < boardx * boardy){
+        return roots[numStates-1].snakeSize;
+    }
+    else{
+        return boardx * boardy + roots[numStates-1].timer;
+    }
 }
 
 int Trainer::evalGame(){ // return index of the final state in roots = numStates - 1.
@@ -320,14 +324,19 @@ void Trainer::expandPath(){
         outcomes[path[count-1]][nextAction] = index;
         initializeNode(env, index);
         if(MODE == DETERMINISTIC_MODE){
+            /*
             double features[numFeatures];
             env.getDeterministicFeatures(features);
             newVal = lm.pass(features);
+            */
         }
         else if(MODE == NETWORK_MODE){
+            
             env.inputSymmetric(a.input, rand()%8);
             a.pass();
             newVal = a.output;
+            
+            //newVal = pow(discountFactor, abs(env.headx - env.applex) + abs(env.heady - env.appley)) + 2;
         }
         /*
         if(abs(newVal) >= 1000){

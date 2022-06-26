@@ -22,6 +22,11 @@ double max(double x, double y){
     return x;
 }
 
+double min(double x, double y){
+    if(x < y) return x;
+    return y;
+}
+
 double randWeight(double startingParameterRange){
     return (((double)rand() / RAND_MAX)*2-1) * startingParameterRange;
 }
