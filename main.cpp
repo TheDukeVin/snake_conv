@@ -81,19 +81,19 @@ void testNet(){
 void trainCycle(){
     cout<<"Beginning training: "<<time(NULL)<<'\n';
     standardSetup(t.a);
-    cout<<"Reading net:\n";
-    t.a.readNet("snakeConv.in");
+    //cout<<"Reading net:\n";
+    //t.a.readNet("snakeConv.in");
     const int storePeriod = 50;
     
     dq.index = 0;
     dq.momentum = 0.7;
-    dq.learnRate = 0.001;
+    dq.learnRate = 0.01;
     t.actionTemperature = 3;
     
-    cout<<"Reading games\n";
-    int maxScore = dq.readGames(); // read games from games.in file.
-    cout<<"Finished reading " << dq.index << " games\n";
-    //int maxScore = 0;
+    //cout<<"Reading games\n";
+    //int maxScore = dq.readGames(); // read games from games.in file.
+    //cout<<"Finished reading " << dq.index << " games\n";
+    int maxScore = 0;
     
     double sum = 0;
     int completions = 0;

@@ -32,8 +32,8 @@ using namespace std;
 //training deatils
 
 #define maxNorm 100
-#define batchSize 2000
-#define numBatches 2
+#define batchSize 100
+#define numBatches 30
 
 //#define scoreNorm 10
 #define queueSize 1000
@@ -47,7 +47,7 @@ using namespace std;
 #define numEvalGames 100
 #define evalZscore 2
 
-#define discountFactor 0.97
+#define discountFactor 0.95
 
 // Deterministic vs Network mode
 

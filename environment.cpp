@@ -265,9 +265,9 @@ void Environment::log(){ // optional function for debugging
 }
 
 double Environment::getReward(){
-    if(snakeSize == boardx * boardy) return 5;
+    if(snakeSize == boardx * boardy) return 10;
     if(timer == maxTime) return 0;
-    if(isEndState()) return -5;
+    if(isEndState()) return -10;
     if(actionType == 1) return 1;
     return 0;
 }
