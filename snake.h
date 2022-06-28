@@ -193,6 +193,22 @@ public:
     }
 };
 
+class OutputLayer : public Layer{
+public:
+    int inputSize, outputSize; // outputSize = 1.
+    
+    OutputLayer(int inSize, int outputSize);
+    
+    virtual void pass(double* inputs, double* outputs);
+    virtual void backProp(double* inputs, double* Dinputs, double* Doutputs);
+    virtual void accumulateGradient(double* inputs, double* Doutputs);
+    
+    virtual ~OutputLayer(){
+        delete[] params;
+        delete[] Dparams;
+    }
+};
+
 class Agent{
 public:
     networkInput* input;
@@ -213,10 +229,10 @@ public:
     void addConvLayer(int depth, int height, int width, int convHeight, int convWidth);
     void addPoolLayer(int depth, int height, int width);
     void addDenseLayer(int numNodes);
+    void addOutputLayer();
     void randomize(double startingParameterRange);
     
     // For network usage and training
-    void quickSetup();
     void pass();
     void resetGradient();
     void backProp();

@@ -292,6 +292,48 @@ void DenseLayer::accumulateGradient(double* inputs, double* Doutputs){
     }
 }
 
+// Output Layer
+
+OutputLayer::OutputLayer(int inSize, int outSize){
+    inputSize = inSize;
+    outputSize = outSize;
+    
+    numWeights = inputSize * outputSize;
+    numBias = outputSize;
+    this->setupParams();
+}
+
+void OutputLayer::pass(double* inputs, double* outputs){
+    double sum;
+    for(int i=0; i<outputSize; i++){
+        sum = bias[i];
+        for(int j=0; j<inputSize; j++){
+            sum += weights[j*outputSize + i] * inputs[j];
+        }
+        outputs[i] = sum;
+    }
+}
+
+void OutputLayer::backProp(double* inputs, double* Dinputs, double* Doutputs){
+    double sum;
+    for(int i=0; i<inputSize; i++){
+        sum = 0;
+        for(int j=0; j<outputSize; j++){
+            sum += weights[i*outputSize + j] * Doutputs[j];
+        }
+        Dinputs[i] = sum * dinvnonlinear(inputs[i]);
+    }
+}
+
+void OutputLayer::accumulateGradient(double* inputs, double* Doutputs){
+    for(int i=0; i<outputSize; i++){
+        Dbias[i] += Doutputs[i];
+        for(int j=0; j<inputSize; j++){
+            Dweights[j*outputSize + i] += Doutputs[i] * inputs[j];
+        }
+    }
+}
+
 
 // ConvNet
 
@@ -328,6 +370,25 @@ void Agent::addDenseLayer(int numNodes){
     maxNodes = max(maxNodes, numNodes);
 }
 
+void Agent::addOutputLayer(){
+    layerHold.push_back(new OutputLayer(prevDepth * prevHeight * prevWidth, 1));
+    
+    numLayers = layerHold.size();
+    layers = new Layer*[numLayers];
+    for(int i=0; i<numLayers; i++){
+        layers[i] = layerHold[i];
+    }
+    activation = new double*[numLayers + 1];
+    Dbias = new double*[numLayers];
+    for(int l=0; l<=numLayers; l++){
+        activation[l] = new double[maxNodes];
+    }
+    for(int l=0; l<numLayers; l++){
+        Dbias[l] = new double[maxNodes];
+    }
+    resetGradient();
+}
+
 void Agent::randomize(double startingParameterRange){
     for(int l=0; l<numLayers; l++){
         layers[l]->randomize(startingParameterRange);
@@ -350,7 +411,7 @@ void Agent::resetGradient(){
 
 void Agent::backProp(){
     pass();
-    Dbias[numLayers-1][0] = 2 * (activation[numLayers][0] - expected) * dinvnonlinear(activation[numLayers][0]);
+    Dbias[numLayers-1][0] = 2 * (activation[numLayers][0] - expected);
     for(int l=numLayers-1; l>0; l--){
         layers[l]->accumulateGradient(activation[l], Dbias[l]);
         layers[l]->backProp(activation[l], Dbias[l-1], Dbias[l]);
@@ -384,21 +445,4 @@ void Agent::readNet(string fileName){
         layers[l]->readNet();
     }
     netIn->close();
-}
-
-void Agent::quickSetup(){
-    numLayers = layerHold.size();
-    layers = new Layer*[numLayers];
-    for(int i=0; i<numLayers; i++){
-        layers[i] = layerHold[i];
-    }
-    activation = new double*[numLayers + 1];
-    Dbias = new double*[numLayers];
-    for(int l=0; l<=numLayers; l++){
-        activation[l] = new double[maxNodes];
-    }
-    for(int l=0; l<numLayers; l++){
-        Dbias[l] = new double[maxNodes];
-    }
-    resetGradient();
 }
