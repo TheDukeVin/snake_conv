@@ -80,3 +80,10 @@ Large batch size may lead to overfitting. Perhaps it is necessary to decrease nu
 6/27/22
 
 Fixed bug where final layer applies ReLu.
+
+
+6/30/22
+
+Wondering how explorationConstant affects training. Before, I set explorationConstant=1, but I'll try setting it to 0.5 to see how things change.
+
+SEEMS LIKE IT WORKS. Pay close attention to explorationConstant.

@@ -49,10 +49,10 @@ void DataQueue::trainAgent(Agent* a){
     }
 }
 
-int DataQueue::readGames(){
+vector<int> DataQueue::readGames(){
     string input;
     ifstream fin("games.in");
-    int maxScore = 0;
+    vector<int> scores;
     while(fin >> input){
         if(input.length() <= 20){
             continue;
@@ -88,9 +88,10 @@ int DataQueue::readGames(){
         enqueue(game, gameLength);
         //maxScore = max(maxScore, game[gameLength - 1].e.getScore());
         cout<<game[gameLength - 1].e.snakeSize<<',';
+        scores.push_back(game[gameLength - 1].e.snakeSize);
     }
     cout<<"\n\n";
-    return maxScore;
+    return scores;
 }
 
 void DataQueue::trainLinear(LinearModel* lm){

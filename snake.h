@@ -40,7 +40,7 @@ using namespace std;
 
 #define numGames 4000
 #define numPaths 600
-#define explorationConstant 1
+#define explorationConstant 0.5
 
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
@@ -357,7 +357,7 @@ public:
     DataQueue();
     void enqueue(Data* d, int gameLength);
     void trainAgent(Agent* a);
-    int readGames(); // returns the maximum score out of the games read.
+    vector<int> readGames(); // returns the maximum score out of the games read.
 
     void trainLinear(LinearModel* lm);
 };

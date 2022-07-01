@@ -81,8 +81,8 @@ void trainCycle(){
     cout<<"Beginning training: "<<time(NULL)<<'\n';
     standardSetup(t.a);
 
-    //cout<<"Reading net:\n";
-    //t.a.readNet("snakeConv.in");
+    cout<<"Reading net:\n";
+    t.a.readNet("snakeConv.in");
 
     const int storePeriod = 50;
     
@@ -91,10 +91,9 @@ void trainCycle(){
     dq.learnRate = 0.01;
     t.actionTemperature = 3;
     
-    //cout<<"Reading games\n";
-    //int maxScore = dq.readGames(); // read games from games.in file.
-    //cout<<"Finished reading " << dq.index << " games\n";
-    int maxScore = 0;
+    cout<<"Reading games\n";
+    vector<int> scores = dq.readGames(); // read games from games.in file.
+    cout<<"Finished reading " << dq.index << " games\n";
     
     double sum = 0;
     int completions = 0;
@@ -114,8 +113,6 @@ void trainCycle(){
     hold4.close();
     t.gameLog = gameLog;
     t.valueLog = valueLog;
-
-    vector<int> scores;
     
     for(int i=0; i<=numGames; i++){
         ofstream fout(gameLog, ios::app);
@@ -160,7 +157,7 @@ void trainCycle(){
             scoreOut<<sum;
         }
         scoreOut.close();
-
+        /*
         maxScore = max(maxScore, score);
         
         if(maxScore >= 10){
@@ -173,7 +170,7 @@ void trainCycle(){
         if(maxScore >= 100){
             //dq.learnRate = 0.00015 / (1 + maxScore);
         }
-        
+        */
         if(i>0 && i%evalPeriod == 0){
             cout<<"\nAVERAGE: "<<(sum / evalPeriod)<<" in iteration "<<i<<'\n';
             cout<<"Completions: "<<((double) completions / evalPeriod)<<'\n';
