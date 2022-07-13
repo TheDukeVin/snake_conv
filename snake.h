@@ -56,6 +56,11 @@ using namespace std;
 #define MODE NETWORK_MODE
 #define numFeatures 8
 
+// Passing Value or Full
+
+#define PASS_VALUE 0
+#define PASS_FULL 1
+
 const string outAddress = "snake_conv.txt";
 
 double squ(double x);
@@ -80,6 +85,17 @@ struct networkInput{
     //double param[3]; // timer, score, and actionType. score and timer are normalized.
 };
 
+const int symDir[8][2] = {
+    { 1,0},
+    { 1,3},
+    { 1,2},
+    { 1,1},
+    {-1,1},
+    {-1,2},
+    {-1,3},
+    {-1,0}
+};
+
 class Layer{
 public:
     ifstream* netIn;
@@ -91,9 +107,15 @@ public:
     double* Dparams;
     double* Dweights;
     double* Dbias;
-    virtual void pass(double* inputs, double* outputs){};
-    virtual void backProp(double* inputs, double* Dinputs, double* Doutputs){};
-    virtual void accumulateGradient(double* inputs, double* Doutputs){};
+    
+    double* inputs;
+    double* outputs;
+    double* Dinputs;
+    double* Doutputs;
+    
+    virtual void pass(){};
+    virtual void backProp(bool increment = false){};
+    virtual void accumulateGradient(){};
     void setupParams();
     void randomize(double startingParameterRange);
     void resetGradient();
@@ -119,9 +141,9 @@ public:
     
     ConvLayer(int inD, int inH, int inW, int outD, int outH, int outW, int convH, int convW);
     
-    virtual void pass(double* inputs, double* outputs);
-    virtual void backProp(double* inputs, double* Dinputs, double* Doutputs);
-    virtual void accumulateGradient(double* inputs, double* Doutputs);
+    virtual void pass();
+    virtual void backProp(bool increment = false);
+    virtual void accumulateGradient();
     
     virtual ~ConvLayer(){
         delete[] params;
@@ -137,8 +159,8 @@ public:
     
     PoolLayer(int inD, int inH, int inW, int outD, int outH, int outW);
     
-    virtual void pass(double* inputs, double* outputs);
-    virtual void backProp(double* inputs, double* Dinputs, double* Doutputs);
+    virtual void pass();
+    virtual void backProp(bool increment = false);
     
     virtual ~PoolLayer(){
         delete[] maxIndices;
@@ -151,16 +173,15 @@ public:
     
     DenseLayer(int inSize, int outSize);
     
-    virtual void pass(double* inputs, double* outputs);
-    virtual void backProp(double* inputs, double* Dinputs, double* Doutputs);
-    virtual void accumulateGradient(double* inputs, double* Doutputs);
+    virtual void pass();
+    virtual void backProp(bool increment = false);
+    virtual void accumulateGradient();
     
     virtual ~DenseLayer(){
         delete[] params;
         delete[] Dparams;
     }
 };
-
 
 // Input layer tailored to snake environment
 
@@ -184,8 +205,8 @@ public:
     
     InputLayer(int outD, int outH, int outW, int convH, int convW, networkInput* input);
     
-    virtual void pass(double* inputs, double* outputs);
-    virtual void accumulateGradient(double* inputs, double* Doutputs);
+    virtual void pass();
+    virtual void accumulateGradient();
     
     virtual ~InputLayer(){
         delete[] params;
@@ -195,13 +216,13 @@ public:
 
 class OutputLayer : public Layer{
 public:
-    int inputSize, outputSize; // outputSize = 1.
+    int inputSize, outputSize;
     
     OutputLayer(int inSize, int outputSize);
     
-    virtual void pass(double* inputs, double* outputs);
-    virtual void backProp(double* inputs, double* Dinputs, double* Doutputs);
-    virtual void accumulateGradient(double* inputs, double* Doutputs);
+    virtual void pass();
+    virtual void backProp(bool increment = false);
+    virtual void accumulateGradient();
     
     virtual ~OutputLayer(){
         delete[] params;
@@ -209,41 +230,66 @@ public:
     }
 };
 
+class Branch{
+public:
+    int numLayers;
+    
+    // For network initiation
+    int prevDepth, prevHeight, prevWidth;
+    networkInput* input;
+    vector<Layer*> layerHold;
+    Layer** layers;
+    
+    double* prevActivation;
+    double* prevDbias;
+    double* output;
+    double* Doutput;
+    
+    void initEnvironmentInput(int depth, int height, int width, int convHeight, int convWidth);
+    void addConvLayer(int depth, int height, int width, int convHeight, int convWidth);
+    void addPoolLayer(int depth, int height, int width);
+    void addFullyConnectedLayer(int numNodes);
+    void addOutputLayer(int numNodes);
+    void setup();
+};
+
 class Agent{
 public:
     networkInput* input;
-    unsigned long numLayers;
-    unsigned maxNodes = 0;
-    Layer** layers; // keep an array of pointers, since derived classes need to be accessed by reference.
-    double** activation;
-    double** Dbias;
+    int numLayers;
     
-    double output;
-    double expected;
+    Layer** layers; // keep an array of pointers, since derived classes need to be accessed by reference.
+    Branch commonBranch;
+    Branch policyBranch;
+    Branch valueBranch;
+    
+    double policyOutput[numAgentActions];
+    double valueOutput;
+    bool validAction[numAgentActions]; // MUST BE FILLED IN for evaluation to work.
+    double policyExpected[numAgentActions];
+    double valueExpected;
     
     // For file I/O
     ifstream* netIn;
     ofstream* netOut;
     
-    void initInput(int depth, int height, int width, int convHeight, int convWidth);
-    void addConvLayer(int depth, int height, int width, int convHeight, int convWidth);
-    void addPoolLayer(int depth, int height, int width);
-    void addDenseLayer(int numNodes);
-    void addOutputLayer();
-    void randomize(double startingParameterRange);
+    Agent(){
+        input = new networkInput;
+        commonBranch.input = input;
+    }
     
     // For network usage and training
-    void pass();
+    void setupCommonBranch();
+    void setup();
     void resetGradient();
-    void backProp();
+    void randomize(double startingParameterRange);
+    
+    void pass(int mode); // Inputs are PASS_VALUE or PASS_FULL
+    void backProp(int mode);
     void updateParameters(double mult, double momentum);
+    
     void save(string fileName);
     void readNet(string fileName);
-    
-private:
-    // For network initiation
-    int prevDepth, prevHeight, prevWidth;
-    vector<Layer*> layerHold;
 };
 
 class LinearModel{
@@ -319,7 +365,7 @@ public:
     bool validChanceAction(int pos);
     void makeAction(int actionIndex);
     void setAction(Environment* currState, int actionIndex);
-    void inputSymmetric(networkInput* a, int t);
+    void inputSymmetric(Agent& net, int t);
     void copyEnv(Environment* e);
     void print();// optional function for debugging
     void log();// optional function for debugging

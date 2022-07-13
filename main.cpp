@@ -13,40 +13,34 @@ Trainer t(&dq);
 
 unsigned long start_time;
 
-/*
-void run_trial(int size){
-    ofstream* fout = new ofstream("SnakeConvResults.out", ios::app);
-    t.a.randomize(0.3);
-    t.a.resetGradient();
-    dq.index = 0;
-    
-    for(int i=0; i<numGames; i++){
-        if(i%evalPeriod == 0){
-            cout<<"Game "<<i<<'\n';
-            (*fout)<<t.evaluate()<<", ";
-        }
-        t.trainTree();
-    }
-    (*fout)<<"TIME: "<<(time(NULL) - start_time)<<'\n';
-    fout->close();
-}*/
-
-
 void standardSetup(Agent& net){
-    net.initInput(10, 10, 10, 3, 3);
-    net.addConvLayer(10, 10, 10, 3, 3);
-    net.addPoolLayer(10, 5, 5);
-    net.addDenseLayer(200);
-    net.addDenseLayer(100);
-    net.addOutputLayer();
+    net.commonBranch.initEnvironmentInput(10, 10, 10, 3, 3);
+    net.commonBranch.addConvLayer(10, 10, 10, 3, 3);
+    net.commonBranch.addPoolLayer(10, 5, 5);
+    net.setupCommonBranch();
+    net.policyBranch.addFullyConnectedLayer(3);
+    net.policyBranch.addFullyConnectedLayer(2);
+    net.policyBranch.addOutputLayer(4);
+    net.valueBranch.addFullyConnectedLayer(3);
+    net.valueBranch.addFullyConnectedLayer(2);
+    net.valueBranch.addOutputLayer(1);
+    net.setup();
     net.randomize(0.2);
 }
 
+void printArray(double* A, int size){
+    for(int i=0; i<size; i++){
+        cout<<A[i]<<' ';
+    }
+    cout<<'\n';
+}
+
 void testNet(){
+    
     cout<<"Testing net:\n";
     Agent net;
     standardSetup(net);
-    net.randomize(0.3);
+    net.randomize(0.5);
     for(int i=0; i<boardx; i++){
         for(int j=0; j<boardy; j++){
             net.input->snake[i][j] = rand() % 5 - 1;
@@ -58,21 +52,49 @@ void testNet(){
         }
         //net.input->param[i] = (double) rand() / RAND_MAX;
     }
-    net.expected = (double) rand() / RAND_MAX;
+    for(int i=0; i<4; i++){
+        net.validAction[i] = rand() % 2;
+    }
+    net.valueExpected = (double) rand() / RAND_MAX;
+    double sum = 0;
+    for(int i=0; i<4; i++){
+        if(net.validAction[i]){
+            net.policyExpected[i] = (double) rand() / RAND_MAX;
+            sum += net.policyExpected[i];
+        }
+    }
+    double sum2 = 0;
+    for(int i=0; i<4; i++){
+        if(net.validAction[i]){
+            net.policyExpected[i] /= sum;
+            sum2 += net.policyExpected[i];
+        }
+    }
     
-    net.pass();
-    double base = squ(net.output - net.expected);
-    net.backProp();
+    net.pass(PASS_FULL);
+    
+    double base = squ(net.valueOutput - net.valueExpected);
+    for(int i=0; i<4; i++){
+        if(net.validAction[i]){
+            base -= net.policyExpected[i] * log(net.policyOutput[i]);
+        }
+    }
+    net.backProp(PASS_FULL);
     double ep = 0.000001;
     
     for(int l=0; l<net.numLayers; l++){
         for(int i=0; i<net.layers[l]->numParams; i++){
             net.layers[l]->params[i] += ep;
-            net.pass();
+            net.pass(PASS_FULL);
             net.layers[l]->params[i] -= ep;
-            double new_error = squ(net.output - net.expected);
+            double new_error = squ(net.valueOutput - net.valueExpected);
+            for(int j=0; j<4; j++){
+                if(net.validAction[j]){
+                    new_error -= net.policyExpected[j] * log(net.policyOutput[j]);
+                }
+            }
             //cout<< ((new_error - base) / ep) << ' ' << net.layers[l]->Dparams[i]<<'\n';
-            assert( abs((new_error - base) / ep - net.layers[l]->Dparams[i]) < 0.001);
+            assert( abs((new_error - base) / ep - net.layers[l]->Dparams[i]) < 0.0001);
         }
     }
 }
@@ -216,9 +238,11 @@ int main()
     srand((unsigned)time(NULL));
     start_time = time(NULL);
     
-    //testNet();
+    for(int i=0; i<10; i++){
+        testNet();
+    }
     
-    trainCycle();
+    //trainCycle();
     
     //evaluate();
     
@@ -231,6 +255,26 @@ int main()
     //checkDeterministic();
     
     //dq.readGames();
+    
+    /*
+    Environment env;
+    env.initialize();
+    env.log();
+    standardSetup(t.a);
+    env.inputSymmetric(t.a, 0);
+    
+    t.a.pass(PASS_FULL);
+    cout<<t.a.valueOutput<<'\n';
+    for(int i=0; i<4; i++){
+        cout<<t.a.policyOutput[i]<<' ';
+    }
+    cout<<'\n';
+    t.a.save("neato.out");
+    for(int i=0; i<t.a.numLayers; i++){
+        cout<<t.a.layers[i]->inputs<<' '<<t.a.layers[i]->Dinputs<<' '<<t.a.layers[i]->outputs<<' '<<t.a.layers[i]->Doutputs<<'\n';
+    }
+    cout<<'\n';
+    */
     
     return 0;
     

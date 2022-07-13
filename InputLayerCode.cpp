@@ -36,7 +36,7 @@ InputLayer::InputLayer(int outD, int outH, int outW, int convH, int convW, netwo
     //DparamWeights = Dweights + (numSnakeWeights + numPosWeights);
 }
 
-void InputLayer::pass(double* inputs, double* outputs){
+void InputLayer::pass(){
     //double inc;
     for(int j=0; j<outputDepth; j++){
         /*
@@ -86,7 +86,7 @@ void InputLayer::pass(double* inputs, double* outputs){
     }
 }
 
-void InputLayer::accumulateGradient(double* inputs, double* Doutputs){
+void InputLayer::accumulateGradient(){
     double sum;
     for(int j=0; j<outputDepth; j++){
         sum = 0;

@@ -124,7 +124,7 @@ ConvLayer::ConvLayer(int inD, int inH, int inW, int outD, int outH, int outW, in
     this->setupParams();
 }
 
-void ConvLayer::pass(double* inputs, double* outputs){
+void ConvLayer::pass(){
     double sum;
     for(int j=0; j<outputDepth; j++){
         for(int x=0; x<outputHeight; x++){
@@ -147,7 +147,7 @@ void ConvLayer::pass(double* inputs, double* outputs){
     }
 }
 
-void ConvLayer::backProp(double* inputs, double* Dinputs, double* Doutputs){
+void ConvLayer::backProp(bool increment){
     for(int i=0; i<inputDepth*inputHeight*inputWidth; i++){
         Dinputs[i] = 0;
     }
@@ -173,7 +173,7 @@ void ConvLayer::backProp(double* inputs, double* Dinputs, double* Doutputs){
     }
 }
 
-void ConvLayer::accumulateGradient(double* inputs, double* Doutputs){
+void ConvLayer::accumulateGradient(){
     for(int j=0; j<outputDepth; j++){
         for(int x=0; x<outputHeight; x++){
             for(int y=0; y<outputWidth; y++){
@@ -213,7 +213,7 @@ PoolLayer::PoolLayer(int inD, int inH, int inW, int outD, int outH, int outW){
     maxIndices = new int[outD * outH * outW];
 }
 
-void PoolLayer::pass(double* inputs, double* outputs){
+void PoolLayer::pass(){
     double maxVal,candVal;
     int maxIndex;
     int index;
@@ -240,7 +240,7 @@ void PoolLayer::pass(double* inputs, double* outputs){
     }
 }
 
-void PoolLayer::backProp(double* inputs, double* Dinputs, double* Doutputs){
+void PoolLayer::backProp(bool increment){
     for(int i=0; i<inputDepth*inputHeight*inputWidth; i++){
         Dinputs[i] = 0;
     }
@@ -261,7 +261,7 @@ DenseLayer::DenseLayer(int inSize, int outSize){
     this->setupParams();
 }
 
-void DenseLayer::pass(double* inputs, double* outputs){
+void DenseLayer::pass(){
     double sum;
     for(int i=0; i<outputSize; i++){
         sum = bias[i];
@@ -272,18 +272,23 @@ void DenseLayer::pass(double* inputs, double* outputs){
     }
 }
 
-void DenseLayer::backProp(double* inputs, double* Dinputs, double* Doutputs){
+void DenseLayer::backProp(bool increment){
     double sum;
     for(int i=0; i<inputSize; i++){
         sum = 0;
         for(int j=0; j<outputSize; j++){
             sum += weights[i*outputSize + j] * Doutputs[j];
         }
-        Dinputs[i] = sum * dinvnonlinear(inputs[i]);
+        if(increment){
+            Dinputs[i] += sum * dinvnonlinear(inputs[i]);
+        }
+        else{
+            Dinputs[i] = sum * dinvnonlinear(inputs[i]);
+        }
     }
 }
 
-void DenseLayer::accumulateGradient(double* inputs, double* Doutputs){
+void DenseLayer::accumulateGradient(){
     for(int i=0; i<outputSize; i++){
         Dbias[i] += Doutputs[i];
         for(int j=0; j<inputSize; j++){
@@ -303,7 +308,7 @@ OutputLayer::OutputLayer(int inSize, int outSize){
     this->setupParams();
 }
 
-void OutputLayer::pass(double* inputs, double* outputs){
+void OutputLayer::pass(){
     double sum;
     for(int i=0; i<outputSize; i++){
         sum = bias[i];
@@ -314,7 +319,7 @@ void OutputLayer::pass(double* inputs, double* outputs){
     }
 }
 
-void OutputLayer::backProp(double* inputs, double* Dinputs, double* Doutputs){
+void OutputLayer::backProp(bool increment){
     double sum;
     for(int i=0; i<inputSize; i++){
         sum = 0;
@@ -325,7 +330,7 @@ void OutputLayer::backProp(double* inputs, double* Dinputs, double* Doutputs){
     }
 }
 
-void OutputLayer::accumulateGradient(double* inputs, double* Doutputs){
+void OutputLayer::accumulateGradient(){
     for(int i=0; i<outputSize; i++){
         Dbias[i] += Doutputs[i];
         for(int j=0; j<inputSize; j++){
@@ -335,59 +340,132 @@ void OutputLayer::accumulateGradient(double* inputs, double* Doutputs){
 }
 
 
-// ConvNet
+// Branch
 
-void Agent::initInput(int depth, int height, int width, int convHeight, int convWidth){
-    input = new networkInput;
-    layerHold.push_back(new InputLayer(depth, height, width, convHeight, convWidth, input));
+void Branch::initEnvironmentInput(int depth, int height, int width, int convHeight, int convWidth){
+    Layer* layer = new InputLayer(depth, height, width, convHeight, convWidth, input);
+    
+    layerHold.push_back(layer);
     prevDepth = depth;
     prevHeight = height;
     prevWidth = width;
-    maxNodes = max(maxNodes, depth * height * width);
+    
+    int numOutputs = depth * height * width;
+    prevActivation = new double[numOutputs];
+    prevDbias = new double[numOutputs];
+    layer->outputs = prevActivation;
+    layer->Doutputs = prevDbias;
 }
 
-void Agent::addConvLayer(int depth, int height, int width, int convHeight, int convWidth){
-    layerHold.push_back(new ConvLayer(prevDepth, prevHeight, prevWidth, depth, height, width, convHeight, convWidth));
+void Branch::addConvLayer(int depth, int height, int width, int convHeight, int convWidth){
+    Layer* layer = new ConvLayer(prevDepth, prevHeight, prevWidth, depth, height, width, convHeight, convWidth);
+    
+    layerHold.push_back(layer);
     prevDepth = depth;
     prevHeight = height;
     prevWidth = width;
-    maxNodes = max(maxNodes, depth * height * width);
+    
+    layer->inputs = prevActivation;
+    layer->Dinputs = prevDbias;
+    int numOutputs = depth * height * width;
+    prevActivation = new double[numOutputs];
+    prevDbias = new double[numOutputs];
+    layer->outputs = prevActivation;
+    layer->Doutputs = prevDbias;
+    output = layer->outputs;
+    Doutput = layer->Doutputs;
 }
 
-void Agent::addPoolLayer(int depth, int height, int width){
-    layerHold.push_back(new PoolLayer(prevDepth, prevHeight, prevWidth, depth, height, width));
+void Branch::addPoolLayer(int depth, int height, int width){
+    Layer* layer = new PoolLayer(prevDepth, prevHeight, prevWidth, depth, height, width);
+    
+    layerHold.push_back(layer);
     prevDepth = depth;
     prevHeight = height;
     prevWidth = width;
-    maxNodes = max(maxNodes, depth * height * width);
+    
+    layer->inputs = prevActivation;
+    layer->Dinputs = prevDbias;
+    int numOutputs = depth * height * width;
+    prevActivation = new double[numOutputs];
+    prevDbias = new double[numOutputs];
+    layer->outputs = prevActivation;
+    layer->Doutputs = prevDbias;
+    output = layer->outputs;
+    Doutput = layer->Doutputs;
 }
 
-void Agent::addDenseLayer(int numNodes){
-    layerHold.push_back(new DenseLayer(prevDepth * prevHeight * prevWidth, numNodes));
+void Branch::addFullyConnectedLayer(int numNodes){
+    Layer* layer = new DenseLayer(prevDepth * prevHeight * prevWidth, numNodes);
+    
+    layerHold.push_back(layer);
     prevDepth = numNodes;
     prevHeight = 1;
     prevWidth = 1;
-    maxNodes = max(maxNodes, numNodes);
+    
+    layer->inputs = prevActivation;
+    layer->Dinputs = prevDbias;
+    prevActivation = new double[numNodes];
+    prevDbias = new double[numNodes];
+    layer->outputs = prevActivation;
+    layer->Doutputs = prevDbias;
+    output = layer->outputs;
+    Doutput = layer->Doutputs;
 }
 
-void Agent::addOutputLayer(){
-    layerHold.push_back(new OutputLayer(prevDepth * prevHeight * prevWidth, 1));
+void Branch::addOutputLayer(int numNodes){
+    Layer* layer = new OutputLayer(prevDepth * prevHeight * prevWidth, numNodes);
     
-    numLayers = layerHold.size();
-    layers = new Layer*[numLayers];
+    layerHold.push_back(layer);
+    
+    layer->inputs = prevActivation;
+    layer->Dinputs = prevDbias;
+    prevActivation = new double[numNodes];
+    prevDbias = new double[numNodes];
+    layer->outputs = prevActivation;
+    layer->Doutputs = prevDbias;
+    output = layer->outputs;
+    Doutput = layer->Doutputs;
+}
+
+void Branch::setup(){
     for(int i=0; i<numLayers; i++){
         layers[i] = layerHold[i];
     }
-    activation = new double*[numLayers + 1];
-    Dbias = new double*[numLayers];
-    for(int l=0; l<=numLayers; l++){
-        activation[l] = new double[maxNodes];
-    }
-    for(int l=0; l<numLayers; l++){
-        Dbias[l] = new double[maxNodes];
-    }
+}
+
+// ConvNet
+
+void Agent::setupCommonBranch(){
+    int numCommonOutput = commonBranch.prevDepth * commonBranch.prevHeight * commonBranch.prevWidth;
+    policyBranch.prevDepth = numCommonOutput;
+    policyBranch.prevHeight = 1;
+    policyBranch.prevWidth = 1;
+    policyBranch.prevActivation = commonBranch.output;
+    policyBranch.prevDbias = commonBranch.Doutput;
+    
+    valueBranch.prevDepth = numCommonOutput;
+    valueBranch.prevHeight = 1;
+    valueBranch.prevWidth = 1;
+    valueBranch.prevActivation = commonBranch.output;
+    valueBranch.prevDbias = commonBranch.Doutput;
+}
+
+void Agent::setup(){
+    commonBranch.numLayers = commonBranch.layerHold.size();
+    policyBranch.numLayers = policyBranch.layerHold.size();
+    valueBranch.numLayers = valueBranch.layerHold.size();
+    numLayers = commonBranch.numLayers + policyBranch.numLayers + valueBranch.numLayers;
+    layers = new Layer*[numLayers];
+    commonBranch.layers = layers;
+    policyBranch.layers = layers + commonBranch.numLayers;
+    valueBranch.layers = layers + commonBranch.numLayers + policyBranch.numLayers;
+    commonBranch.setup();
+    policyBranch.setup();
+    valueBranch.setup();
     resetGradient();
 }
+
 
 void Agent::randomize(double startingParameterRange){
     for(int l=0; l<numLayers; l++){
@@ -395,12 +473,36 @@ void Agent::randomize(double startingParameterRange){
     }
 }
 
-void Agent::pass(){
-    layers[0]->pass(NULL, activation[1]);
-    for(int l=1; l<numLayers; l++){
-        layers[l]->pass(activation[l], activation[l+1]);
+void Agent::pass(int mode){
+    for(int i=0; i<commonBranch.numLayers; i++){
+        commonBranch.layers[i]->pass();
     }
-    output = activation[numLayers][0];
+    for(int i=0; i<valueBranch.numLayers; i++){
+        valueBranch.layers[i]->pass();
+    }
+    valueOutput = valueBranch.output[0];
+    if(mode == PASS_VALUE){
+        return;
+    }
+    
+    for(int i=0; i<policyBranch.numLayers; i++){
+        policyBranch.layers[i]->pass();
+    }
+    double sum = 0;
+    for(int i=0; i<numAgentActions; i++){
+        if(validAction[i]){
+            sum += exp(policyBranch.output[i]);
+        }
+    }
+    if(sum == 0){
+        return;
+    }
+    assert(sum < 100000);
+    for(int i=0; i<numAgentActions; i++){
+        if(validAction[i]){
+            policyOutput[i] = exp(policyBranch.output[i]) / sum;
+        }
+    }
 }
 
 void Agent::resetGradient(){
@@ -409,14 +511,35 @@ void Agent::resetGradient(){
     }
 }
 
-void Agent::backProp(){
-    pass();
-    Dbias[numLayers-1][0] = 2 * (activation[numLayers][0] - expected);
-    for(int l=numLayers-1; l>0; l--){
-        layers[l]->accumulateGradient(activation[l], Dbias[l]);
-        layers[l]->backProp(activation[l], Dbias[l-1], Dbias[l]);
+void Agent::backProp(int mode){
+    pass(mode);
+    valueBranch.Doutput[0] = 2 * (valueOutput - valueExpected);
+    for(int i=valueBranch.numLayers-1; i>=0; i--){
+        valueBranch.layers[i]->accumulateGradient();
+        valueBranch.layers[i]->backProp();
     }
-    layers[0]->accumulateGradient(NULL, Dbias[0]);
+    
+    if(mode == PASS_FULL){
+        for(int i=0; i<numAgentActions; i++){
+            if(validAction[i]){
+                policyBranch.Doutput[i] = policyOutput[i] - policyExpected[i];
+            }
+            else{
+                policyBranch.Doutput[i] = 0;
+            }
+        }
+        for(int i=policyBranch.numLayers-1; i>0; i--){
+            policyBranch.layers[i]->accumulateGradient();
+            policyBranch.layers[i]->backProp();
+        }
+        policyBranch.layers[0]->accumulateGradient();
+        policyBranch.layers[0]->backProp(true);
+    }
+    for(int i=commonBranch.numLayers-1; i>0; i--){
+        commonBranch.layers[i]->accumulateGradient();
+        commonBranch.layers[i]->backProp();
+    }
+    commonBranch.layers[0]->accumulateGradient();
 }
 
 void Agent::updateParameters(double mult, double momentum){

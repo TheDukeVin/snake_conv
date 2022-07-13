@@ -148,7 +148,8 @@ void Environment::chanceAction(int actionIndex){
     actionType = 0;
 }
 
-void Environment::inputSymmetric(networkInput* a, int t){
+void Environment::inputSymmetric(Agent& net, int t){
+    networkInput* a = net.input;
     int m = boardx-1;
     int sym[8][2][3] = {
         {{ 1, 0, 0},{ 0, 1, 0}},
@@ -159,16 +160,6 @@ void Environment::inputSymmetric(networkInput* a, int t){
         {{ 1, 0, 0},{ 0,-1, m}},
         {{ 0,-1, m},{-1, 0, m}},
         {{-1, 0, m},{ 0, 1, 0}}
-    };
-    int symDir[8][2] = {
-        { 1,0},
-        { 1,3},
-        { 1,2},
-        { 1,1},
-        {-1,1},
-        {-1,2},
-        {-1,3},
-        {-1,0}
     };
     /*
     a->param[0] = (double) timer / maxTime;
@@ -192,6 +183,13 @@ void Environment::inputSymmetric(networkInput* a, int t){
             else{
                 a->snake[x][y] = (symDir[t][0]*snake[i][j] + symDir[t][1] + 4) % 4;
             }
+        }
+    }
+    
+    // FILL IN VALID ACTIONS FOR NETWORK
+    if(actionType == 0){
+        for(int i=0; i<4; i++){
+            net.validAction[(symDir[t][0]*i + symDir[t][1] + 4) % 4] = validAction(i);
         }
     }
 }

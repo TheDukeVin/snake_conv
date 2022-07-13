@@ -105,9 +105,9 @@ double Trainer::trainTree(){
     fout<<"]\n";
     fout<<"network_values = [";
     for(int i=0; i<numStates; i++){
-        game[i].e.inputSymmetric(a.input, rand()%8);
-        a.pass();
-        fout<<a.output;
+        //game[i].e.inputSymmetric(a.input, rand()%8);
+        //a.pass();
+        //fout<<a.output;
         if(i != numStates-1) fout<<',';
     }
     fout<<"]\n";
@@ -332,9 +332,9 @@ void Trainer::expandPath(){
         }
         else if(MODE == NETWORK_MODE){
             
-            env.inputSymmetric(a.input, rand()%8);
-            a.pass();
-            newVal = a.output;
+            //env.inputSymmetric(a.input, rand()%8);
+            //a.pass();
+            //newVal = a.output;
             
             //newVal = pow(discountFactor, abs(env.headx - env.applex) + abs(env.heady - env.appley)) + 2;
         }
