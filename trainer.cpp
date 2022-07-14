@@ -25,9 +25,42 @@ void Trainer::initializeNode(Environment& env, int currNode){
     }
     subtreeSize[currNode] = 0;
     sumScore[currNode] = 0;
+    
+    // Evaluate the network at the current node.
+    
+    int symID = rand()%8;
+    env.inputSymmetric(a, symID);
+    if(env.actionType == 0){
+        a.pass(PASS_FULL);
+    }
+    else{
+        a.pass(PASS_VALUE);
+    }
+    values[currNode] = a.valueOutput;
+    if(env.actionType == 0){
+        for(int d=0; d<numAgentActions; d++){
+            policy[currNode][d] = a.policyOutput[(symDir[symID][0]*d + symDir[symID][1] + 4) % 4];
+            if(outcomes[currNode][d] != -2){
+                assert(policy[currNode][d] != -1);
+            }
+        }
+    }
 }
 
 double Trainer::trainTree(){
+    double search_values[maxTime*2];
+    double search_policies[maxTime*2][numAgentActions];
+    for(int i=0; i<maxTime*2; i++){
+        for(int j=0; j<numAgentActions; j++){
+            search_policies[i][j] = -1;
+        }
+    }
+    for(int i=0; i<maxStates; i++){
+        for(int j=0; j<numAgentActions; j++){
+            policy[i][j] = -1;
+        }
+    }
+    
     roots[0].initialize();
     rootIndex = 0;
     ofstream gameOut(gameLog, ios::app);
@@ -37,16 +70,18 @@ double Trainer::trainTree(){
     gameOut<<(roots[0].applex * boardy + roots[0].appley)<<',';
     initializeNode(roots[0], 0);
     index = 1;
-
-    double values[maxTime*2];
     
     int chosenAction;
     for(rootState=0; rootState<maxTime*2; rootState++){
+        rootIndices[rootState] = rootIndex;
         if(roots[rootState].actionType == 0){
             for(int j=0; j<numPaths; j++){
                 expandPath();
             }
             computeActionProbs();
+            for(int j=0; j<numAgentActions; j++){
+                search_policies[rootState][j] = actionProbs[j];
+            }
             chosenAction = sampleActionProbs();
         }
         else{
@@ -60,10 +95,10 @@ double Trainer::trainTree(){
             }
         }
         if(subtreeSize[rootIndex] != 0){
-            values[rootState] = sumScore[rootIndex] / subtreeSize[rootIndex];
+            search_values[rootState] = sumScore[rootIndex] / subtreeSize[rootIndex];
         }
         else{
-            values[rootState] = 0;
+            search_values[rootState] = 0;
         }
         roots[rootState+1].setAction(&roots[rootState], chosenAction);
         rootIndex = outcomes[rootIndex][chosenAction];
@@ -95,6 +130,11 @@ double Trainer::trainTree(){
             value = roots[i-1].getReward() + value * pow(discountFactor, roots[i].timer - roots[i-1].timer);
         }
     }
+    for(int i=0; i<numStates; i++){
+        for(int j=0; j<numAgentActions; j++){
+            game[i].expectedPolicy[j] = search_policies[i][j];
+        }
+    }
     dq->enqueue(game, numStates);
 
     fout<<"values = [";
@@ -103,22 +143,43 @@ double Trainer::trainTree(){
         if(i != numStates-1) fout<<',';
     }
     fout<<"]\n";
+    
     fout<<"network_values = [";
     for(int i=0; i<numStates; i++){
-        //game[i].e.inputSymmetric(a.input, rand()%8);
-        //a.pass();
-        //fout<<a.output;
+        fout<<values[rootIndices[i]];
         if(i != numStates-1) fout<<',';
     }
     fout<<"]\n";
+    
     fout<<"search_values = [";
     values[numStates - 1] = game[numStates - 1].e.getReward();
     for(int i=0; i<numStates; i++){
-        fout<<values[i];
+        fout<<search_values[i];
         if(i != numStates-1) fout<<',';
     }
     fout<<"]\n";
-
+    
+    fout<<"network_policy = [";
+    for(int i=0; i<numStates; i++){
+        fout<<"[";
+        for(int j=0; j<numAgentActions; j++){
+            fout<<policy[rootIndices[i]][j];
+            if(j != numAgentActions-1) fout<<',';
+        }
+        fout<<"],";
+    }
+    fout<<"]\n";
+    
+    fout<<"search_policy = [";
+    for(int i=0; i<numStates; i++){
+        fout<<"[";
+        for(int j=0; j<numAgentActions; j++){
+            fout<<search_policies[i][j];
+            if(j != numAgentActions-1) fout<<',';
+        }
+        fout<<"],";
+    }
+    fout<<"]\n";
 
     fout.close();
     if(roots[numStates-1].snakeSize < boardx * boardy){
@@ -292,21 +353,38 @@ void Trainer::expandPath(){
         rewards[count] = env.getReward();
         times[count] = env.timer;
         count++;
-        maxVal = -1000000;
         currType = env.actionType;
+        maxVal = -1000000;
+        maxIndex = -1;
         for(i=0; i<numActions[currType]; i++){
             nextNode = outcomes[currNode][i];
             if(nextNode == -2){
                 continue;
             }
-            if(nextNode == -1){
-                candVal = 1000 + (double)rand() / RAND_MAX;
-            }
-            else{
-                if(currType == 0){
-                    candVal = sumScore[nextNode] / subtreeSize[nextNode] + explorationConstant * log(subtreeSize[currNode]) / sqrt(subtreeSize[nextNode]);
+            if(currType == 0){
+                assert(policy[currNode][i] != -1);
+                double Qval;
+                int size = 0;
+                if(nextNode == -1){
+                    if(subtreeSize[currNode] == 0){
+                        Qval = 0;
+                    }
+                    else{
+                        Qval = sumScore[currNode] / subtreeSize[currNode];
+                    }
                 }
-                if(currType == 1){
+                else{
+                    Qval = sumScore[nextNode] / subtreeSize[nextNode];
+                    size = subtreeSize[nextNode];
+                }
+                candVal = Qval + explorationConstant * policy[currNode][i] * sqrt(subtreeSize[currNode] + 1) / (size + 1);
+                //candVal = sumScore[nextNode] / subtreeSize[nextNode] + explorationConstant * log(subtreeSize[currNode]) / sqrt(subtreeSize[nextNode]);
+            }
+            if(currType == 1){
+                if(nextNode == -1){
+                    candVal = (double) rand() / RAND_MAX + 1;
+                }
+                else{
                     candVal = (double)rand() / RAND_MAX - subtreeSize[nextNode];
                 }
             }
@@ -315,6 +393,7 @@ void Trainer::expandPath(){
                 maxIndex = i;
             }
         }
+        assert(maxIndex != -1);
         nextAction = maxIndex;
         currNode = outcomes[currNode][maxIndex];
         env.makeAction(maxIndex);
@@ -323,61 +402,23 @@ void Trainer::expandPath(){
     if(currNode == -1){
         outcomes[path[count-1]][nextAction] = index;
         initializeNode(env, index);
-        if(MODE == DETERMINISTIC_MODE){
-            /*
-            double features[numFeatures];
-            env.getDeterministicFeatures(features);
-            newVal = lm.pass(features);
-            */
-        }
-        else if(MODE == NETWORK_MODE){
-            
-            //env.inputSymmetric(a.input, rand()%8);
-            //a.pass();
-            //newVal = a.output;
-            
-            //newVal = pow(discountFactor, abs(env.headx - env.applex) + abs(env.heady - env.appley)) + 2;
-        }
-        /*
-        if(abs(newVal) >= 1000){
-            for(int i=0; i<numFeatures+1; i++){
-                cout<<lm.params[i]<<' ';
-            }
-            cout<<'\n';
-        }*/
-        assert(abs(newVal) < 1000);
+        
+        newVal = values[index];
+        
         path[count] = index;
         times[count] = env.timer;
         index++;
         count++;
-        /*
-        Attempt at voiding very bad scores. Crashes.
-        if(size[currRoot] > 0 && newVal < (sumScore[currRoot] / size[currRoot]) - 2){
-            cout<<sumScore[currRoot] <<' '<< size[currRoot]<<'\n';
-            outcomes[path[count-1]][nextAction] = -2;
-            return;
-        }
-        else{
-            outcomes[path[count-1]][nextAction] = index;
-            path[count] = index;
-            index++;
-            count++;
-        }
-        */
     }
     else{
-        //newVal = env.getScore();
         newVal = env.getReward();
         path[count] = currNode;
         times[count] = env.timer;
         count++;
-    }/*
-    for(i=0; i<count; i++){
-        subtreeSize[path[i]]++;
-        sumScore[path[i]] += newVal;
-    }*/
+    }
     double value = newVal;
     for(i=count-1; i>=0; i--){
+        //cout<<"Path "<<i<<' '<<path[i]<<'\n';
         subtreeSize[path[i]]++;
         sumScore[path[i]] += value;
         assert(times[i] >= 0);
@@ -408,13 +449,20 @@ void Trainer::printTree(){
 void Trainer::computeActionProbs(){
     int i;
     int nextIndex;
+    double sum = 0;
     for(i=0; i<numAgentActions; i++){
         nextIndex = outcomes[rootIndex][i];
         if(nextIndex != -2){
             actionProbs[i] = pow(subtreeSize[nextIndex], actionTemperature); // squ(size[nextIndex]);
+            sum += actionProbs[i];
         }
         else{
             actionProbs[i] = -1;
+        }
+    }
+    for(int i=0; i<numAgentActions; i++){
+        if(actionProbs[i] != -1){
+            actionProbs[i] /= sum;
         }
     }
 }
@@ -431,16 +479,9 @@ int Trainer::optActionProbs(){
 }
 
 int Trainer::sampleActionProbs(){
-    double propSum = 0;
     int i;
-    for(i=0; i<numAgentActions; i++){
-        if(actionProbs[i] == -1){
-            continue;
-        }
-        propSum += actionProbs[i];
-    }
     double parsum = 0;
-    double randReal = (double)rand() / RAND_MAX * propSum;
+    double randReal = (double)rand() / RAND_MAX;
     
     int actionIndex = -1;
     for(i=0; i<numAgentActions; i++){

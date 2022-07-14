@@ -481,6 +481,7 @@ void Agent::pass(int mode){
         valueBranch.layers[i]->pass();
     }
     valueOutput = valueBranch.output[0];
+    assert(abs(valueOutput) < 1000);
     if(mode == PASS_VALUE){
         return;
     }
@@ -492,15 +493,18 @@ void Agent::pass(int mode){
     for(int i=0; i<numAgentActions; i++){
         if(validAction[i]){
             sum += exp(policyBranch.output[i]);
+            assert(abs(policyBranch.output[i]) < 1000);
         }
     }
     if(sum == 0){
         return;
     }
-    assert(sum < 100000);
     for(int i=0; i<numAgentActions; i++){
         if(validAction[i]){
             policyOutput[i] = exp(policyBranch.output[i]) / sum;
+        }
+        else{
+            policyOutput[i] = -1;
         }
     }
 }
@@ -520,13 +524,19 @@ void Agent::backProp(int mode){
     }
     
     if(mode == PASS_FULL){
+        double sum = 0;
         for(int i=0; i<numAgentActions; i++){
             if(validAction[i]){
                 policyBranch.Doutput[i] = policyOutput[i] - policyExpected[i];
+                sum += policyExpected[i];
             }
             else{
                 policyBranch.Doutput[i] = 0;
             }
+        }
+        if(abs(sum - 1) > 0.000001){
+            cout<<"Incorrect sum: "<<sum<<'\n';
+            assert(false);
         }
         for(int i=policyBranch.numLayers-1; i>0; i--){
             policyBranch.layers[i]->accumulateGradient();

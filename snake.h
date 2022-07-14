@@ -40,7 +40,7 @@ using namespace std;
 
 #define numGames 4000
 #define numPaths 200
-#define explorationConstant 0.3
+#define explorationConstant 0.5
 
 #define maxStates (maxTime*2*numPaths)
 #define evalPeriod 100
@@ -386,11 +386,11 @@ class Data{
 public:
     Environment e;
     double expectedValue;
-    double features[numFeatures];
+    double expectedPolicy[numAgentActions];
     
     Data(){}
     Data(Environment* givenEnv, double givenExpected);
-    void trainAgent(Agent* a);
+    void trainAgent(Agent& a);
 };
 
 class DataQueue{
@@ -402,10 +402,8 @@ public:
     
     DataQueue();
     void enqueue(Data* d, int gameLength);
-    void trainAgent(Agent* a);
+    void trainAgent(Agent& a);
     vector<int> readGames(); // returns the maximum score out of the games read.
-
-    void trainLinear(LinearModel* lm);
 };
 
 // Trainer
@@ -436,6 +434,9 @@ public:
     int subtreeSize[maxStates];
     double sumScore[maxStates];
     Environment roots[maxTime*2];
+    int rootIndices[maxTime*2];
+    double values[maxStates];
+    double policy[maxStates][numAgentActions];
     
     // Implementing the tree search
     int index;

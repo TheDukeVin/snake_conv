@@ -36,7 +36,6 @@ void printArray(double* A, int size){
 }
 
 void testNet(){
-    
     cout<<"Testing net:\n";
     Agent net;
     standardSetup(net);
@@ -103,19 +102,20 @@ void trainCycle(){
     cout<<"Beginning training: "<<time(NULL)<<'\n';
     standardSetup(t.a);
 
-    cout<<"Reading net:\n";
-    t.a.readNet("snakeConv.in");
+    //cout<<"Reading net:\n";
+    //t.a.readNet("snakeConv.in");
 
     const int storePeriod = 50;
     
     dq.index = 0;
     dq.momentum = 0.7;
-    dq.learnRate = 0.001;
-    t.actionTemperature = 3;
+    dq.learnRate = 0.01;
+    t.actionTemperature = 2;
     
-    cout<<"Reading games\n";
-    vector<int> scores = dq.readGames(); // read games from games.in file.
-    cout<<"Finished reading " << dq.index << " games\n";
+    //cout<<"Reading games\n";
+    //vector<int> scores = dq.readGames(); // read games from games.in file.
+    //cout<<"Finished reading " << dq.index << " games\n";
+    vector<int> scores;
     
     double sum = 0;
     int completions = 0;
@@ -208,7 +208,7 @@ void trainCycle(){
             t.a.save("nets/Game" + to_string(i) + ".out");
         }
         
-        dq.trainAgent(&t.a);
+        dq.trainAgent(t.a);
     }
 }
 
@@ -238,11 +238,12 @@ int main()
     srand((unsigned)time(NULL));
     start_time = time(NULL);
     
+    /*
     for(int i=0; i<10; i++){
         testNet();
-    }
+    }*/
     
-    //trainCycle();
+    trainCycle();
     
     //evaluate();
     

@@ -10,17 +10,22 @@
 Data::Data(Environment* givenEnv, double givenExpected){
     e.copyEnv(givenEnv);
     expectedValue = givenExpected;
-    if(MODE == DETERMINISTIC_MODE){
-        e.getDeterministicFeatures(features);
-    }
 }
 
-void Data::trainAgent(Agent* a){
-    //e.inputSymmetric(a->input, rand()%8);
-    /*
-    a->expected = expectedValue;
-    a->backProp();
-    assert(abs(a->output) < 1000);*/
+void Data::trainAgent(Agent& a){
+    int symID = rand()%8;
+    e.inputSymmetric(a, symID);
+    a.valueExpected = expectedValue;
+    if(e.actionType == 0 && !e.isEndState()){
+        for(int i=0; i<numAgentActions; i++){
+            a.policyExpected[(symDir[symID][0]*i + symDir[symID][1] + 4) % 4] = expectedPolicy[i];
+        }
+        a.backProp(PASS_FULL);
+    }
+    else{
+        a.backProp(PASS_VALUE);
+    }
+    assert(abs(a.valueOutput) < 1000);
 }
 
 DataQueue::DataQueue(){
@@ -39,14 +44,14 @@ void DataQueue::enqueue(Data* d, int gameLength){
     index++;
 }
 
-void DataQueue::trainAgent(Agent* a){
+void DataQueue::trainAgent(Agent& a){
     int i,j;
     for(i=0; i<numBatches; i++){
         for(j=0; j<batchSize; j++){
             int gameIndex = rand() % min(index,queueSize);
             queue[gameIndex][rand() % gameLengths[gameIndex]].trainAgent(a);
         }
-        a->updateParameters(learnRate / batchSize, momentum);
+        a.updateParameters(learnRate / batchSize, momentum);
     }
 }
 
@@ -93,13 +98,4 @@ vector<int> DataQueue::readGames(){
     }
     cout<<"\n\n";
     return scores;
-}
-
-void DataQueue::trainLinear(LinearModel* lm){
-    for(int i=0; i<batchSize; i++){
-        int gameIndex = rand() % min(index,queueSize);
-        Data* chosenData = &(queue[gameIndex][rand() % gameLengths[gameIndex]]);
-        lm->backProp(chosenData->features, chosenData->expectedValue);
-    }
-    lm->updateParameters(learnRate / batchSize, momentum);
 }
