@@ -18,11 +18,11 @@ void standardSetup(Agent& net){
     net.commonBranch.addConvLayer(10, 10, 10, 3, 3);
     net.commonBranch.addPoolLayer(10, 5, 5);
     net.setupCommonBranch();
-    net.policyBranch.addFullyConnectedLayer(3);
-    net.policyBranch.addFullyConnectedLayer(2);
+    net.policyBranch.addFullyConnectedLayer(200);
+    net.policyBranch.addFullyConnectedLayer(100);
     net.policyBranch.addOutputLayer(4);
-    net.valueBranch.addFullyConnectedLayer(3);
-    net.valueBranch.addFullyConnectedLayer(2);
+    net.valueBranch.addFullyConnectedLayer(200);
+    net.valueBranch.addFullyConnectedLayer(100);
     net.valueBranch.addOutputLayer(1);
     net.setup();
     net.randomize(0.2);
