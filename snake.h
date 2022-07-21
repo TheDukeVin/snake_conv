@@ -32,14 +32,14 @@ using namespace std;
 //training deatils
 
 #define maxNorm 100
-#define batchSize 100
-#define numBatches 30
+#define batchSize 1000
+#define numBatches 3
 
 //#define scoreNorm 10
-#define queueSize 500
+#define queueSize 1000
 
 #define numGames 4000
-#define numPaths 200
+#define numPaths 100
 #define explorationConstant 0.5
 
 #define maxStates (maxTime*2*numPaths)
@@ -47,7 +47,7 @@ using namespace std;
 #define numEvalGames 100
 #define evalZscore 2
 
-#define discountFactor 0.95
+#define discountFactor 0.98
 
 // Deterministic vs Network mode
 
@@ -446,10 +446,7 @@ public:
     double actionProbs[numAgentActions];
     
     void initializeNode(Environment& env, int currNode);
-    double trainTree();
-    int evalGame();// return index of the final state in states.
-    void printGame();
-    void exportGame();
+    Environment* trainTree(); // returns pointer to final environment in game sequence
     void evaluate();
     
     int path[maxStates];

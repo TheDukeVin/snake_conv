@@ -121,41 +121,34 @@ void trainCycle(){
     int completions = 0;
     double completionTime = 0;
     
-    string gameLog = "gameLog.out";
     string summaryLog = "summary.out";
-    string valueLog = "valueLog.out";
+    string valueLog = "details.out";
     string scoreLog = "scores.out";
-    ofstream hold(gameLog);
-    hold.close();
     ofstream hold2(summaryLog);
     hold2.close();
     ofstream hold3(valueLog);
     hold3.close();
     ofstream hold4(scoreLog);
     hold4.close();
-    t.gameLog = gameLog;
     t.valueLog = valueLog;
     
     for(int i=0; i<=numGames; i++){
-        ofstream fout(gameLog, ios::app);
-        fout<<"Game "<<i<<' '<<time(NULL)<<'\n';
-        fout.close();
         ofstream valueOut(valueLog, ios::app);
         valueOut<<"Game "<<i<<' '<<time(NULL)<<'\n';
         valueOut.close();
 
-        double result = t.trainTree();
-        double score = min(result, boardx*boardy);
+        Environment* result = t.trainTree();
+        double score = result->snakeSize;
         sum += score;
         if(score == boardx*boardy){
             completions++;
-            completionTime += result - score;
+            completionTime += result->timer;
         }
 
         cout<<i<<':'<<score<<' ';
         
         ofstream summaryOut(summaryLog, ios::app);
-        summaryOut<<i<<':'<<score<<' ';
+        summaryOut<<i<<':'<<score<<' '<<result->timer<<' ';
         summaryOut.close();
 
         scores.push_back(score);
@@ -167,32 +160,7 @@ void trainCycle(){
             scoreOut<<scores[s];
         }
         scoreOut<<'\n';
-        int AVG_PERIOD = 10;
-        for(int s=0; s<scores.size() / AVG_PERIOD; s++){
-            if(s > 0){
-                scoreOut<<',';
-            }
-            double sum = 0;
-            for(int j=0; j<AVG_PERIOD; j++){
-                sum += scores[s * AVG_PERIOD + j];
-            }
-            scoreOut<<sum;
-        }
         scoreOut.close();
-        /*
-        maxScore = max(maxScore, score);
-        
-        if(maxScore >= 10){
-            //t.actionTemperature = max(t.actionTemperature, 2);
-        }
-        if(maxScore >= 40){
-            //dq.learnRate = 0.0003 / (1 + maxScore);
-            //t.actionTemperature = max(t.actionTemperature, 3);
-        }
-        if(maxScore >= 100){
-            //dq.learnRate = 0.00015 / (1 + maxScore);
-        }
-        */
         if(i>0 && i%evalPeriod == 0){
             cout<<"\nAVERAGE: "<<(sum / evalPeriod)<<" in iteration "<<i<<'\n';
             cout<<"Completions: "<<((double) completions / evalPeriod)<<'\n';
@@ -223,14 +191,14 @@ void evaluate(){
         ofstream fout(outAddress, ios::app);
         fout<<"Printed game "<<i<<'\n';
         fout.close();
-        t.printGame();
+        //t.printGame();
     }
 }
 
 void exportGames(){
     standardSetup(t.a);
     t.a.readNet("snakeConv.in");
-    t.exportGame();
+    //t.exportGame();
 }
 
 int main()
