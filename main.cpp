@@ -181,6 +181,7 @@ void trainCycle(){
 }
 
 void evaluate(){
+    /*
     standardSetup(t.a);
     t.a.readNet("snakeConv.in");
     t.evaluate();
@@ -192,7 +193,7 @@ void evaluate(){
         fout<<"Printed game "<<i<<'\n';
         fout.close();
         //t.printGame();
-    }
+    }*/
 }
 
 void exportGames(){
@@ -211,39 +212,11 @@ int main()
         testNet();
     }*/
     
-    trainCycle();
+    //trainCycle();
     
     //evaluate();
     
-    //manual_game();
-    
-    //exportGames();
-
-    //runDeterministic();
-    
-    //checkDeterministic();
-    
     //dq.readGames();
-    
-    /*
-    Environment env;
-    env.initialize();
-    env.log();
-    standardSetup(t.a);
-    env.inputSymmetric(t.a, 0);
-    
-    t.a.pass(PASS_FULL);
-    cout<<t.a.valueOutput<<'\n';
-    for(int i=0; i<4; i++){
-        cout<<t.a.policyOutput[i]<<' ';
-    }
-    cout<<'\n';
-    t.a.save("neato.out");
-    for(int i=0; i<t.a.numLayers; i++){
-        cout<<t.a.layers[i]->inputs<<' '<<t.a.layers[i]->Dinputs<<' '<<t.a.layers[i]->outputs<<' '<<t.a.layers[i]->Doutputs<<'\n';
-    }
-    cout<<'\n';
-    */
     
     return 0;
     

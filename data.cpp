@@ -56,13 +56,11 @@ void DataQueue::trainAgent(Agent& a){
 }
 
 vector<int> DataQueue::readGames(){
-    string input;
     ifstream fin("games.in");
     vector<int> scores;
-    while(fin >> input){
-        if(input.length() <= 20){
-            continue;
-        }
+    while(true){
+        string hold;
+        fin>>
         vector<int> actions;
         int currAction = 0;
         for(int i=0; i<input.length(); i++){

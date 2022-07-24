@@ -159,34 +159,6 @@ Environment* Trainer::trainTree(){
     return &roots[numStates-1];
 }
 
-void Trainer::evaluate(){
-    /*
-    int endState;
-    double sizeSum = 0;
-    double sizeSquareSum = 0;
-    int numCompletes = 0;
-    int timeSum = 0;
-    for(int i=0; i<numEvalGames; i++){
-        endState = evalGame();
-        cout<<roots[endState].snakeSize<<' ';
-        sizeSum += roots[endState].snakeSize;
-        sizeSquareSum += squ(roots[endState].snakeSize);
-        if(roots[endState].snakeSize == boardx * boardy){
-            numCompletes++;
-            timeSum += roots[endState].timer;
-        }
-    }
-    double averageScore = sizeSum / numEvalGames;
-    double variance = sizeSquareSum / numEvalGames - squ(averageScore);
-    double SE = sqrt(variance / numEvalGames) * evalZscore;
-    cout<<"\nAverage snake size: "<<(sizeSum/numEvalGames)<<'\n';
-    cout<<"Confidence interval: (" << (averageScore - SE) << ", " << (averageScore + SE) << ")\n";
-    cout<<"Proportion of completions: "<<((double) numCompletes / numEvalGames)<<'\n';
-    cout<<"Average time to completion: "<<((double) timeSum / numCompletes)<<'\n';
-    cout<<'\n';
-     */
-}
-
 void Trainer::expandPath(){
     int currNode = rootIndex;
     int nextNode,nextAction;
@@ -272,7 +244,6 @@ void Trainer::expandPath(){
     }
     double value = newVal;
     for(i=count-1; i>=0; i--){
-        //cout<<"Path "<<i<<' '<<path[i]<<'\n';
         subtreeSize[path[i]]++;
         sumScore[path[i]] += value;
         assert(times[i] >= 0);
@@ -307,7 +278,7 @@ void Trainer::computeActionProbs(){
     for(i=0; i<numAgentActions; i++){
         nextIndex = outcomes[rootIndex][i];
         if(nextIndex != -2){
-            actionProbs[i] = pow(subtreeSize[nextIndex], actionTemperature); // squ(size[nextIndex]);
+            actionProbs[i] = pow(subtreeSize[nextIndex], actionTemperature);
             sum += actionProbs[i];
         }
         else{

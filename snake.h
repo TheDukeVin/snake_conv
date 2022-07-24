@@ -32,14 +32,14 @@ using namespace std;
 //training deatils
 
 #define maxNorm 100
-#define batchSize 1000
-#define numBatches 3
+#define batchSize 100
+#define numBatches 30
 
 //#define scoreNorm 10
 #define queueSize 1000
 
 #define numGames 4000
-#define numPaths 100
+#define numPaths 200
 #define explorationConstant 0.5
 
 #define maxStates (maxTime*2*numPaths)
@@ -48,13 +48,6 @@ using namespace std;
 #define evalZscore 2
 
 #define discountFactor 0.98
-
-// Deterministic vs Network mode
-
-#define DETERMINISTIC_MODE 0
-#define NETWORK_MODE 1
-#define MODE NETWORK_MODE
-#define numFeatures 8
 
 // Passing Value or Full
 
@@ -292,52 +285,6 @@ public:
     void readNet(string fileName);
 };
 
-class LinearModel{
-    public:
-    int numParams;
-    double* params;
-    double* weights;
-    double* bias;
-    double* Dparams;
-    double* Dweights;
-    double* Dbias;
-
-    LinearModel(){
-        numParams = numFeatures + 1;
-        params = new double[numParams];
-        weights = params;
-        bias = params + numFeatures;
-        Dparams = new double[numParams];
-        Dweights = Dparams;
-        Dbias = Dparams + numFeatures;
-
-        // Initial set of weights:
-        for(int i=0; i<numParams; i++){
-            params[i] = 0;
-        }
-        //-0.357594  1.29193 0.0270724       0.15542 0.162815        0.855346        0.0896465       0.00498049      0.877094
-        /*
-        weights[0] = -0.357594;
-        weights[1] = 1.29193;
-        weights[2] = 0.0270724;
-        weights[3] = 0.15542;
-        weights[4] = 0.162815;
-        weights[5] = 0.855346;
-        weights[6] = 0.0896465;
-        weights[7] = 0.00498049;
-        bias[0] = 0.877094;
-        */
-        resetGradient();
-    }
-
-    double pass(double* features);
-
-    void backProp(double* features, double expected);
-
-    void resetGradient();
-    void updateParameters(double mult, double momentum);
-};
-
 // Environment things
 
 const int numActions[2] = {numAgentActions, numChanceActions};
@@ -370,7 +317,6 @@ public:
     void print();// optional function for debugging
     void log();// optional function for debugging
     
-    void getDeterministicFeatures(double* features);
     double getReward();
     
     void agentAction(int actionIndex);
@@ -415,7 +361,6 @@ public:
     double actionTemperature = 1;
     
     Agent a;
-    LinearModel lm;
     double exploitationFactor;
     
     string gameLog;
@@ -447,7 +392,6 @@ public:
     
     void initializeNode(Environment& env, int currNode);
     Environment* trainTree(); // returns pointer to final environment in game sequence
-    void evaluate();
     
     int path[maxStates];
     double rewards[maxTime*2];
