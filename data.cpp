@@ -60,39 +60,89 @@ vector<int> DataQueue::readGames(){
     vector<int> scores;
     while(true){
         string hold;
-        fin>>
-        vector<int> actions;
-        int currAction = 0;
-        for(int i=0; i<input.length(); i++){
-            if(input[i] == ','){
-                actions.push_back(currAction);
-                currAction = 0;
-            }
-            else{
-                currAction *= 10;
-                currAction += input[i] - '0';
+        if(!(fin>>hold)){
+            break;
+        }
+        if(hold == "Game"){
+            fin>>hold>>hold;
+            continue;
+        }
+        int input = stoi(hold);
+        
+        vector<Environment> envs;
+        Environment initialEnv;
+        initialEnv.initialize();
+        initialEnv.chanceAction(input);
+        envs.push_back(initialEnv);
+        
+        for(int i=1; true; i++){
+            fin>>input;
+            assert(envs[i-1].validAction(input));
+            Environment new_env;
+            new_env.setAction(&envs[i-1], input);
+            envs.push_back(new_env);
+            if(new_env.isEndState()){
+                break;
             }
         }
-        actions.push_back(currAction);
-        int gameLength = actions.size();
+        int gameLength = envs.size();
+        
         Data* game = new Data[gameLength];
-        game[0].e.initialize();
-        game[0].e.chanceAction(actions[0]);
-        for(int i=1; i<gameLength; i++){
-            assert(game[i-1].e.validAction(actions[i]));
-            game[i].e.setAction(&game[i-1].e, actions[i]);
-        }
-        double value = game[gameLength-1].e.getReward();
+        
+        double value = envs[gameLength-1].getReward();
         for(int i=gameLength-1; i>=0; i--){
             game[i].expectedValue = value;
+            game[i].e = envs[i];
             if(i > 0){
-                value = game[i-1].e.getReward() + value * pow(discountFactor, game[i].e.timer - game[i-1].e.timer);
+                value = envs[i-1].getReward() + value * pow(discountFactor, envs[i].timer - envs[i-1].timer);
             }
         }
         enqueue(game, gameLength);
         //maxScore = max(maxScore, game[gameLength - 1].e.getScore());
         cout<<game[gameLength - 1].e.snakeSize<<',';
         scores.push_back(game[gameLength - 1].e.snakeSize);
+        
+        for(int i=0; i<gameLength; i++){
+            double value;
+            fin>>value;
+            assert(abs(value - game[i].expectedValue) < 0.001);
+        }
+        for(int i=0; i<6*gameLength; i++){
+            double value;
+            fin>>value;
+        }
+        for(int i=0; i<gameLength; i++){
+            double sum = 0;
+            double policy[numAgentActions];
+            for(int j=0; j<numAgentActions; j++){
+                fin>>policy[j];
+                if(policy[j] > 0){
+                    sum += policy[j];
+                }
+            }
+            if(sum > 0){
+                assert(abs(sum - 1) < 0.01);
+            }
+            assert((game[i].e.isEndState() || game[i].e.actionType == 1) == (sum == 0));
+            /*
+            if(game[i].e.isEndState() != (sum == 0)){
+                cout<<'\n'<<i<<'\n';
+                game[i].e.log();
+                cout<<"End state: " << game[i].e.isEndState();
+                assert(false);
+            }*/
+            for(int j=0; j<numAgentActions; j++){
+                if(policy[j] < 0){
+                    game[i].expectedPolicy[j] = -1;
+                }
+                else{
+                    game[i].expectedPolicy[j] = policy[j] / sum;
+                }
+                if(game[i].e.actionType == 0 && !game[i].e.isEndState()){
+                    assert((game[i].e.validAction(j)) == (game[i].expectedPolicy[j] != -1));
+                }
+            }
+        }
     }
     cout<<"\n\n";
     return scores;
