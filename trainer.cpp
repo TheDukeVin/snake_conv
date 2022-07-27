@@ -133,7 +133,7 @@ Environment* Trainer::trainTree(){
     }
     fout<<"\n";
     
-    values[numStates - 1] = game[numStates - 1].e.getReward();
+    search_values[numStates - 1] = game[numStates - 1].e.getReward();
     for(int i=0; i<numStates; i++){
         fout<<search_values[i];
         if(i != numStates-1) fout<<' ';

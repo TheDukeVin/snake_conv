@@ -36,7 +36,7 @@ using namespace std;
 #define numBatches 30
 
 //#define scoreNorm 10
-#define queueSize 1000
+#define queueSize 2000
 
 #define numGames 4000
 #define numPaths 200
