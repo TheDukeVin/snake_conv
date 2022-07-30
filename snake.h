@@ -32,11 +32,11 @@ using namespace std;
 //training deatils
 
 #define maxNorm 100
-#define batchSize 100
-#define numBatches 30
+#define batchSize 1000
+#define numBatches 6
 
 //#define scoreNorm 10
-#define queueSize 2000
+#define queueSize 3000
 
 #define numGames 4000
 #define numPaths 200

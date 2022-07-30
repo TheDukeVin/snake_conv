@@ -411,27 +411,28 @@ function draw(){
     fillText("Network Value", cNetwork, textSize, marginx/3, textSize*3)
     fillText(network_values[currActionIndex-2].toString(), cText, textSize, marginx*2/3, textSize*3)
 
-    drawLine(cValue, marginx/4, windy/2, marginx/4, windy/2 - values[currActionIndex-2] * 25, marginx/4)
+    valueScale = 20
+    drawLine(cValue, marginx/4, windy/2, marginx/4, windy/2 - values[currActionIndex-2] * valueScale, marginx/4)
 
-    drawLine(cSearch, marginx*2/4, windy/2, marginx*2/4, windy/2 - search_values[currActionIndex-2] * 25, marginx/4)
+    drawLine(cSearch, marginx*2/4, windy/2, marginx*2/4, windy/2 - search_values[currActionIndex-2] * valueScale, marginx/4)
 
-    drawLine(cNetwork, marginx*3/4, windy/2, marginx*3/4, windy/2 - network_values[currActionIndex-2] * 25, marginx/4)
+    drawLine(cNetwork, marginx*3/4, windy/2, marginx*3/4, windy/2 - network_values[currActionIndex-2] * valueScale, marginx/4)
 
     fillText("Search Policy", cPolicy, textSize, windx - marginx/3, textSize);
     fillText("Network Policy", cNetPolicy, textSize, windx - marginx/3, textSize*2);
-    scale = 200
+    scale = 150
     for(d=0; d<4; d++){
         if(search_policy[currActionIndex-2][d] != -1){
             x = windx - marginx/2
             y = windy/2
-            drawLine(cPolicy, x, y, x + dir[d][1] * search_policy[currActionIndex-2][d] * scale, y + dir[d][0] * search_policy[currActionIndex-2][d] * scale, 20)
+            drawLine(cPolicy, x, y, x + dir[d][1] * search_policy[currActionIndex-2][d] * scale, y + dir[d][0] * search_policy[currActionIndex-2][d] * scale, 5)
         }
     }
     for(d=0; d<4; d++){
         if(search_policy[currActionIndex-2][d] != -1){
             x = windx - marginx/2
             y = windy/2
-            drawLine(cNetPolicy, x, y, x + dir[d][1] * network_policy[currActionIndex-2][d] * scale, y + dir[d][0] * network_policy[currActionIndex-2][d] * scale, 10)
+            drawLine(cNetPolicy, x, y, x + dir[d][1] * network_policy[currActionIndex-2][d] * scale, y + dir[d][0] * network_policy[currActionIndex-2][d] * scale, 2)
         }
     }
 }
